@@ -2,13 +2,78 @@
 
 #include <cstddef>
 
+struct Node
+{
+  Node *parent;
+  Node *left = nullptr;
+  Node *rght = nullptr;
+  explicit Node(Node *parent) : parent(parent) {}
+};
+
+template <typename T>
+struct DNode : Node
+{
+  T data;
+  DNode(Node *parent, T data) : Node(parent), data(std::move(data)) {}
+  Node *add_right(T &data)
+  {
+    if(rght)
+      return rght;
+
+    rght = new DNode(this, std::move(data));
+    return nullptr;
+  }
+  Node *add_left(T &data)
+  {
+    if(left)
+      return left;
+
+    left = new DNode(this, std::move(data));
+    return nullptr;
+  }
+  ~DNode()
+  {
+    delete data; // ???
+    delete rght;
+    delete left;
+  }
+};
+
+struct Sentinel
+{
+  Node *root = nullptr;
+  ~Sentinel()
+  {
+    delete root;
+  }
+};
+
+template <typename T>
+class Tree
+{
+  Sentinel sentinel;
+
+public:
+  void add(T data)
+  {
+    DNode<T> *cur = sentinel.root;
+    while(cur != nullptr)
+    {
+      if(data > cur->data)
+        cur = cur->add_right(data);
+      else
+        cur = cur->add_left(data);
+    }
+  }
+};
+
 template <typename Left, typename Right, typename CompareLeft,
           typename CompareRight>
 struct bimap {
-  using left_t = ...;
-  using right_t = ...;
+  using left_t = Left;
+  using right_t = Right;
 
-  using node_t = ...;
+  using node_t = Node;
 
   struct right_iterator; // По аналогии с left_iterator
   struct left_iterator {
