@@ -24,7 +24,7 @@ struct Node {
   Node* prev();
 };
 ///--------------------------------------------------------------------------///
-template <typename T, typename Compare>
+template <typename T, typename Compare = std::less<T>>
 struct DNode : Node {
   T data;
 
@@ -50,7 +50,7 @@ struct DNode : Node {
         {
           is_success = true;
           return make_pointer(cur->rght =
-                                  new DNode<T, Compare>(cur, std::move(cur->data)));
+                                  new DNode<T, Compare>(cur, std::move(new_data)));
         }
       } else if (compare(new_data, cur->data)) {
         if (cur->left)
@@ -58,8 +58,7 @@ struct DNode : Node {
         else
         {
           is_success = true;
-          return make_pointer(cur->left =
-                                  new DNode<T, Compare>(cur, std::move(cur->data)));
+          return make_pointer(cur->left = new DNode<T, Compare>(cur, std::move(new_data)));
         }
       } else
       {
@@ -70,8 +69,8 @@ struct DNode : Node {
     is_success = false;
   }
 
-  DNode<T, Compare>* find(const T& x, Compare& compare) {
-    DNode<T, Compare>* cur = this;
+  DNode<T, Compare>* find(const T& x, Compare const& compare) const {
+    auto* cur = const_cast<DNode<T, Compare>*>(this);
     while (cur) {
       if (compare(cur->data, x))
         cur = make_pointer(cur->rght);
@@ -130,7 +129,7 @@ struct Sentinel : Node {
     return static_cast<DNode<T, Compare>*>(Node::rght);
   }
 
-  bool empty() {
+  bool empty() const {
     return rght == nullptr;
   }
 
@@ -216,6 +215,13 @@ private:
     template <typename eq_iT, typename eq_iCompare>
     bool operator!=(preorder_iterator<eq_iT, eq_iCompare> const& other) const {
       return cur != other.cur;
+    }
+
+    bool is_end()
+    {
+      if(cur->parent == nullptr)
+        return true;
+      return false;
     }
 
     DNode<iT, Compare>* get_node() const {
@@ -317,6 +323,13 @@ private:
       return cur != other.cur;
     }
 
+    bool is_end() const
+    {
+      if(cur->parent == nullptr)
+        return true;
+      return false;
+    }
+
     reference operator*() const {
       return static_cast<DNode<iT, iCompare>*>(cur)->data;
     }
@@ -357,17 +370,17 @@ public:
     return iterator::begin_iter(this);
   }
 
-//  const_iterator begin() const {
-//    return const_iterator::begin_iter(this);
-//  }
+  //  const_iterator begin() const {
+  //    return const_iterator::begin_iter(this);
+  //  }
 
   iterator end() const {
     return iterator::end_iter(this);
   }
 
-//  const_iterator end() const {
-//    return const_iterator::end_iter(this);
-//  }
+  //  const_iterator end() const {
+  //    return const_iterator::end_iter(this);
+  //  }
 
   ///------------------------------------------------------------------------///
 

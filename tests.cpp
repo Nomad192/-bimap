@@ -12,93 +12,72 @@ TEST(bimap, leak_check) {
     b.insert(e(), e());
   }
 }
-//
-//TEST(bimap, simple) {
-//  bimap<int, int> b;
-//  b.insert(4, 4);
-//  EXPECT_EQ(b.at_right(4), b.at_left(4));
-//}
-//
-//TEST(bimap, custom_comparator) {
-//  bimap<int, int, std::greater<>> b;
-//  b.insert(3, 4);
-//  b.insert(1, 5);
-//  b.insert(10, -10);
-//
-//  int prev = *b.begin_left();
-//  for (auto it = ++b.begin_left(); it != b.end_left(); it++) {
-//    EXPECT_GT(prev, *it);
-//  }
-//  prev = *b.begin_right();
-//  for (auto it = ++b.begin_right(); it != b.end_right(); it++) {
-//    EXPECT_LT(prev, *it);
-//  }
-//}
-//
-//TEST(bimap, custom_parametrized_comparator) {
-//  using vec = std::pair<int, int>;
-//  bimap<vec, vec, vector_compare, vector_compare> b(
-//      (vector_compare(vector_compare::manhattan)));
-//  b.insert({0, 1}, {35, 3});
-//  b.insert({20, -20}, {20, -20});
-//  b.insert({35, 3}, {3, -1});
-//  b.insert({3, -1}, {0, 1});
-//
-//  std::vector<vec> correct_left = {{0, 1}, {3, -1}, {35, 3}, {20, -20}};
-//  std::vector<vec> correct_right = {{0, 1}, {3, -1}, {20, -20}, {35, 3}};
-//  auto lit = b.begin_left();
-//  auto rit = b.begin_right();
-//  for (int i = 0; i < 4; i++) {
-//    EXPECT_EQ(*lit++, correct_left[i]);
-//    EXPECT_EQ(*rit++, correct_right[i]);
-//  }
-//}
-//
-//TEST(bimap, copies) {
-//  bimap<int, int> b;
-//  b.insert(3, 4);
-//  bimap<int, int> b1(b);
-//  EXPECT_EQ(*b.find_left(3).flip(), 4);
-//  b1.insert(4, 5);
-//  EXPECT_EQ(b.find_left(4), b.end_left());
-//
-//  b1.insert(10, -10);
-//  b = b1;
-//  EXPECT_NE(b.find_right(-10), b.end_right());
-//}
-//
-//TEST(bimap, insert) {
-//  bimap<int, int> b;
-//  b.insert(4, 10);
-//  b.insert(10, 4);
-//  EXPECT_EQ(*b.find_right(4).flip(), 10);
-//  EXPECT_EQ(b.at_left(10), 4);
-//}
-//
-//TEST(bimap, insert_move) {
-//  bimap<int, test_object> b;
-//  test_object x(3), x2(3);
-//  b.insert(4, std::move(x));
-//  EXPECT_EQ(x.a, 0);
-//  EXPECT_EQ(b.at_right(x2), 4);
-//  EXPECT_EQ(b.at_left(4), x2);
-//
-//  bimap<test_object, int> b2;
-//  test_object y(4), y2(4);
-//  b2.insert(std::move(y), 3);
-//  EXPECT_EQ(y.a, 0);
-//  EXPECT_EQ(b2.at_left(y2), 3);
-//  EXPECT_EQ(b2.at_right(3), y2);
-//
-//  bimap<test_object, test_object> b3;
-//  test_object z(6), z1(2);
-//  b3.insert(std::move(z), std::move(z1));
-//  EXPECT_EQ(z.a, 0);
-//  EXPECT_EQ(z1.a, 0);
-//  auto it = b3.find_left(test_object(6));
-//  EXPECT_EQ(it->a, 6);
-//  EXPECT_EQ(it.flip()->a, 2);
-//}
+
+TEST(bimap, simple) {
+  bimap<int, int> b;
+  b.insert(4, 4);
+  EXPECT_EQ(b.at_right(4), b.at_left(4));
+}
+
+TEST(bimap, custom_comparator) {
+  bimap<int, int, std::greater<>> b;
+  b.insert(3, 4);
+  b.insert(1, 5);
+  b.insert(10, -10);
+
+  int prev = *b.begin_left();
+  for (auto it = ++b.begin_left(); it != b.end_left(); it++) {
+    EXPECT_GT(prev, *it);
+  }
+  prev = *b.begin_right();
+  for (auto it = ++b.begin_right(); it != b.end_right(); it++) {
+    EXPECT_LT(prev, *it);
+  }
+}
+
+TEST(bimap, custom_parametrized_comparator) {
+  using vec = std::pair<int, int>;
+  bimap<vec, vec, vector_compare, vector_compare> b(
+      (vector_compare(vector_compare::manhattan)));
+  b.insert({0, 1}, {35, 3});
+  b.insert({20, -20}, {20, -20});
+  b.insert({35, 3}, {3, -1});
+  b.insert({3, -1}, {0, 1});
+
+  std::vector<vec> correct_left = {{0, 1}, {3, -1}, {35, 3}, {20, -20}};
+  std::vector<vec> correct_right = {{0, 1}, {3, -1}, {20, -20}, {35, 3}};
+  auto lit = b.begin_left();
+  auto rit = b.begin_right();
+  for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(*lit++, correct_left[i]);
+    EXPECT_EQ(*rit++, correct_right[i]);
+  }
+}
+
+TEST(bimap, insert_move) {
+  bimap<int, test_object> b;
+  test_object x(3), x2(3);
+  b.insert(4, std::move(x));
+  EXPECT_EQ(x.a, 0);
+  EXPECT_EQ(b.at_right(x2), 4);
+  EXPECT_EQ(b.at_left(4), x2);
+
+  bimap<test_object, int> b2;
+  test_object y(4), y2(4);
+  b2.insert(std::move(y), 3);
+  EXPECT_EQ(y.a, 0);
+  EXPECT_EQ(b2.at_left(y2), 3);
+  EXPECT_EQ(b2.at_right(3), y2);
+
+  bimap<test_object, test_object> b3;
+  test_object z(6), z1(2);
+  b3.insert(std::move(z), std::move(z1));
+  EXPECT_EQ(z.a, 0);
+  EXPECT_EQ(z1.a, 0);
+  auto it = b3.find_left(test_object(6));
+  EXPECT_EQ(it->a, 6);
+  EXPECT_EQ(it.flip()->a, 2);
+}
 //
 //TEST(bimap, at) {
 //  bimap<int, int> b;
