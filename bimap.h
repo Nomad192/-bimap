@@ -320,15 +320,57 @@ public:
       throw std::out_of_range("cannot find el");
     return *(iter.flip());
   }
-  //
-  //  // Возвращает противоположный элемент по элементу
-  //  // Если элемента не существует, добавляет его в bimap и на противоположную
-  //  // сторону кладет дефолтный элемент, ссылку на который и возвращает
-  //  // Если дефолтный элемент уже лежит в противоположной паре - должен
-  //  поменять
-  //  // соответствующий ему элемент на запрашиваемый (смотри тесты)
-  //  right_t const &at_left_or_default(left_t const &key);
-  //  left_t const &at_right_or_default(right_t const &key);
+
+    // Возвращает противоположный элемент по элементу
+    // Если элемента не существует, добавляет его в bimap и на противоположную
+    // сторону кладет дефолтный элемент, ссылку на который и возвращает
+    // Если дефолтный элемент уже лежит в противоположной паре - должен поменять
+    // соответствующий ему элемент на запрашиваемый (смотри тесты)
+    right_t const &at_left_or_default(left_t const &key)
+    {
+      left_iterator l_iter(left_tree.find(l_node{&key}), this);
+      if (l_iter == end_left())
+      {
+        right_t r_data{};
+        right_iterator r_iter(right_tree.find(r_node{&r_data}), this);
+        if(r_iter == end_right())
+        {
+          return *(add(key, r_data).flip());
+        }
+        else
+        {
+          left_t *l_data = new left_t(key);
+          (*(r_iter.flip().i_cur)).data = l_data;
+          return *r_iter;
+        }
+      }
+
+      return *(l_iter.flip());
+    }
+    left_t const &at_right_or_default(right_t const &key)
+    {
+      right_iterator r_iter(right_tree.find(r_node{&key}), this);
+      if (r_iter == end_right())
+      {
+        left_t l_data{};
+        left_iterator l_iter(left_tree.find(l_node{&l_data}), this);
+        if(l_iter == end_left())
+        {
+          left_t const &ll = *add(l_data, key);
+          return ll;
+        }
+        else
+        {
+          right_t *r_data = new right_t(key);
+          (*(l_iter.flip().i_cur)).data = r_data;
+          return *l_iter;
+        }
+      }
+
+      return *(r_iter.flip());
+    }
+
+
   //
   //  // lower и upper bound'ы по каждой стороне
   //  // Возвращают итераторы на соответствующие элементы

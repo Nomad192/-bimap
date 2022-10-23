@@ -173,7 +173,7 @@ public:
     return sentinel.empty();
   }
 
-  size_t size()
+  size_t size() const
   {
     return n_node;
   }
@@ -396,7 +396,7 @@ public:
   iterator add(T data) {
     bool is_success = false;
     Node *result = sentinel.add(std::move(data), comp, is_success);
-    n_node++;
+    if(is_success) n_node++;
     return is_success ? iterator(result) : end();
   }
 

@@ -89,67 +89,67 @@ TEST(bimap, at) {
   EXPECT_EQ(b.at_right(3), 4);
 }
 
-//TEST(bimap, at_or_default) {
-//  bimap<int, int> b;
-//  b.insert(4, 2);
-//
-//  EXPECT_EQ(b.at_left_or_default(5), 0);
-//  EXPECT_EQ(b.at_right(0), 5);
-//
-//  EXPECT_EQ(b.at_right_or_default(1), 0);
-//  EXPECT_EQ(b.at_left(0), 1);
-//
-//  // b has (5, 0)
-//  EXPECT_EQ(b.at_left_or_default(42), 0);
-//  // (5, 0) is replaced with (42, 0)
-//  EXPECT_EQ(b.at_right(0), 42);
-//
-//  // b has (0, 1)
-//  EXPECT_EQ(b.at_right_or_default(1000), 0);
-//  // (0, 1) is replaced with (0, 1000)
-//  EXPECT_EQ(b.at_left(0), 1000);
-//}
-//
-//TEST(bimap, end_flip) {
-//  bimap<int, int> b;
-//  EXPECT_EQ(b.end_left().flip(), b.end_right());
-//  EXPECT_EQ(b.end_right().flip(), b.end_left());
-//
-//  b.insert(1, 2);
-//  b.insert(-3, 5);
-//  b.insert(1000, -100000);
-//
-//  EXPECT_EQ(b.end_left().flip(), b.end_right());
-//  EXPECT_EQ(b.end_right().flip(), b.end_left());
-//}
-//
-//TEST(bimap, total_flip) {
-//  bimap<int, int> b;
-//  b.insert(100, -100);
-//  b.insert(-100, 100);
-//  b.insert(-10, 10);
-//  b.insert(-12, -10);
-//
-//  auto rit = b.begin_right();
-//  auto lit = b.begin_left();
-//  for (; rit != b.end_right() && lit != b.end_left(); rit++, lit++) {
-//    EXPECT_EQ(lit.flip().flip(), lit);
-//    EXPECT_EQ(rit.flip().flip(), rit);
-//  }
-//}
-//
-//TEST(bimap, find) {
-//  bimap<int, int> b;
-//  b.insert(3, 4);
-//  b.insert(4, 5);
-//  b.insert(42, 1000);
-//
-//  EXPECT_EQ(*b.find_right(5).flip(), 4);
-//  EXPECT_EQ(*b.find_left(3).flip(), 4);
-//  EXPECT_EQ(b.find_left(3436), b.end_left());
-//  EXPECT_EQ(b.find_right(-1000), b.end_right());
-//}
-//
+TEST(bimap, at_or_default) {
+  bimap<int, int> b;
+  b.insert(4, 2);
+
+  EXPECT_EQ(b.at_left_or_default(5), 0);
+  EXPECT_EQ(b.at_right(0), 5);
+
+  EXPECT_EQ(b.at_right_or_default(1), 0);
+  EXPECT_EQ(b.at_left(0), 1);
+
+  // b has (5, 0)
+  EXPECT_EQ(b.at_left_or_default(42), 0);
+  // (5, 0) is replaced with (42, 0)
+  EXPECT_EQ(b.at_right(0), 42);
+
+  // b has (0, 1)
+  EXPECT_EQ(b.at_right_or_default(1000), 0);
+  // (0, 1) is replaced with (0, 1000)
+  EXPECT_EQ(b.at_left(0), 1000);
+}
+
+TEST(bimap, end_flip) {
+  bimap<int, int> b;
+  EXPECT_EQ(b.end_left().flip(), b.end_right());
+  EXPECT_EQ(b.end_right().flip(), b.end_left());
+
+  b.insert(1, 2);
+  b.insert(-3, 5);
+  b.insert(1000, -100000);
+
+  EXPECT_EQ(b.end_left().flip(), b.end_right());
+  EXPECT_EQ(b.end_right().flip(), b.end_left());
+}
+
+TEST(bimap, total_flip) {
+  bimap<int, int> b;
+  b.insert(100, -100);
+  b.insert(-100, 100);
+  b.insert(-10, 10);
+  b.insert(-12, -10);
+
+  auto rit = b.begin_right();
+  auto lit = b.begin_left();
+  for (; rit != b.end_right() && lit != b.end_left(); rit++, lit++) {
+    EXPECT_EQ(lit.flip().flip(), lit);
+    EXPECT_EQ(rit.flip().flip(), rit);
+  }
+}
+
+TEST(bimap, find) {
+  bimap<int, int> b;
+  b.insert(3, 4);
+  b.insert(4, 5);
+  b.insert(42, 1000);
+
+  EXPECT_EQ(*b.find_right(5).flip(), 4);
+  EXPECT_EQ(*b.find_left(3).flip(), 4);
+  EXPECT_EQ(b.find_left(3436), b.end_left());
+  EXPECT_EQ(b.find_right(-1000), b.end_right());
+}
+
 //TEST(bimap, empty) {
 //  bimap<int, int> b;
 //  EXPECT_TRUE(b.empty());
@@ -158,18 +158,18 @@ TEST(bimap, at) {
 //  b.erase_left(it);
 //  EXPECT_TRUE(b.empty());
 //}
-//
-//TEST(bimap, insert_exist) {
-//  bimap<int, int> b;
-//  b.insert(1, 2);
-//  b.insert(2, 3);
-//  b.insert(3, 4);
-//  EXPECT_EQ(b.size(), 3);
-//  auto it = b.insert(2, -1);
-//  EXPECT_EQ(it, b.end_left());
-//  EXPECT_EQ(b.size(), 3);
-//}
-//
+
+TEST(bimap, insert_exist) {
+  bimap<int, int> b;
+  b.insert(1, 2);
+  b.insert(2, 3);
+  b.insert(3, 4);
+  EXPECT_EQ(b.size(), 3);
+  auto it = b.insert(2, -1);
+  EXPECT_EQ(it, b.end_left());
+  EXPECT_EQ(b.size(), 3);
+}
+
 //TEST(bimap, erase_iterator) {
 //  bimap<int, int> b;
 //  auto it = b.insert(1, 2);
@@ -286,7 +286,7 @@ TEST(bimap, at) {
 //  EXPECT_NE(a, b);
 //
 //  EXPECT_EQ(a.end_left().flip(), a.end_right());
-//  EXPECT_EQ(a.end_right().flip(), a.end_left());
+//  EXPECT_EQ(a.end_right().flip(), a.end_lef  дщпшt());
 //}
 //
 //TEST(bimap, iterator_ops) {
