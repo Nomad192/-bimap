@@ -78,17 +78,17 @@ TEST(bimap, insert_move) {
   EXPECT_EQ(it->a, 6);
   EXPECT_EQ(it.flip()->a, 2);
 }
-//
-//TEST(bimap, at) {
-//  bimap<int, int> b;
-//  b.insert(4, 3);
-//
-//  EXPECT_THROW(b.at_left(1), std::out_of_range);
-//  EXPECT_THROW(b.at_right(300), std::out_of_range);
-//  EXPECT_EQ(b.at_left(4), 3);
-//  EXPECT_EQ(b.at_right(3), 4);
-//}
-//
+
+TEST(bimap, at) {
+  bimap<int, int> b;
+  b.insert(4, 3);
+
+  EXPECT_THROW(b.at_left(1), std::out_of_range);
+  EXPECT_THROW(b.at_right(300), std::out_of_range);
+  EXPECT_EQ(b.at_left(4), 3);
+  EXPECT_EQ(b.at_right(3), 4);
+}
+
 //TEST(bimap, at_or_default) {
 //  bimap<int, int> b;
 //  b.insert(4, 2);

@@ -16,8 +16,8 @@ class bimap {
   template <typename Data, typename Pair, typename CompareData,
             typename ComparePair>
   struct Node {
-    Data data;
-    Node(Data data) : data(std::move(data)) {}
+    Data const* data;
+    Node(Data const* data) : data(data) {}
     typename Tree<Node<Pair, Data, ComparePair, CompareData>,
                   CompareNode<Pair, Data, ComparePair, CompareData>>::iterator
         pair;
@@ -30,7 +30,7 @@ class bimap {
     CompareNode(decltype(comp) comp) : comp(comp) {}
     bool operator()(const Node<Data, Pair, CompareData, ComparePair>& a,
                     const Node<Data, Pair, CompareData, ComparePair>& b) const {
-      return comp.operator()(a.data, b.data);
+      return comp.operator()(*(a.data), *(b.data));
     }
   };
 
@@ -42,7 +42,6 @@ class bimap {
   Tree<l_node, compare_l_node> left_tree;
   Tree<r_node, compare_r_node> right_tree;
 
-public:
   using left_t = Left;
   using right_t = Right;
 
@@ -61,10 +60,10 @@ public:
     // Разыменование итератора end_left() неопределено.
     // Разыменование невалидного итератора неопределено.
     Base const& operator*() const {
-      return (*i_cur).data;
+      return *((*i_cur).data);
     }
     Base const* operator->() const {
-      return (*i_cur).data;
+      return  (*i_cur).data;
     }
     //
     //    // Переход к следующему по величине left'у.
@@ -79,22 +78,22 @@ public:
       ++(*this);
       return res;
     }
+
+    bool operator==(base_iterator const& b) const {
+      return i_cur == b.i_cur;
+    }
+    bool operator!=(base_iterator const& b) const {
+      return i_cur != b.i_cur;
+    }
+
     //
     //    // Переход к предыдущему по величине left'у.
     //    // Декремент итератора begin_left() неопределен.
     //    // Декремент невалидного итератора неопределен.
     //          left_iterator &operator--();
     //          left_iterator operator--(int);
-
-    bool operator==(base_iterator const& b) {
-      return i_cur == b.i_cur;
-    }
-    bool operator!=(base_iterator const& b) {
-      return i_cur != b.i_cur;
-    }
   };
 
-private:
   using base_iter_left = base_iterator<Left, Right, CompareLeft, CompareRight>;
   using base_iter_right = base_iterator<Right, Left, CompareRight, CompareLeft>;
 
@@ -105,6 +104,19 @@ public:
     left_iterator(typename Tree<l_node, compare_l_node>::iterator i_cur,
                   bimap<Left, Right, CompareLeft, CompareRight> const* my_bimap)
         : base_iter_left(i_cur), my_bimap(my_bimap) {}
+
+    using difference_type = ptrdiff_t;
+    using value_type = Left;
+    using pointer = value_type*;
+    using reference = value_type&;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    bool operator==(left_iterator const& b) const {
+      return base_iter_left::i_cur == b.i_cur;
+    }
+    bool operator!=(left_iterator const& b) const {
+      return base_iter_left::i_cur != b.i_cur;
+    }
 
     // left_iterator ссылается на левый элемент некоторой пары.
     // Эта функция возвращает итератор на правый элемент той же пары.
@@ -125,6 +137,19 @@ public:
         bimap<Left, Right, CompareLeft, CompareRight> const* my_bimap)
         : base_iter_right(i_cur), my_bimap(my_bimap) {}
 
+    bool operator==(right_iterator const& b) const {
+      return base_iter_right::i_cur == b.i_cur;
+    }
+    bool operator!=(right_iterator const& b) const {
+      return base_iter_right::i_cur != b.i_cur;
+    }
+
+    using difference_type = ptrdiff_t;
+    using value_type = Right;
+    using pointer = value_type*;
+    using reference = value_type&;
+    using iterator_category = std::bidirectional_iterator_tag;
+
     // left_iterator ссылается на левый элемент некоторой пары.
     // Эта функция возвращает итератор на правый элемент той же пары.
     // end_left().flip() возращает end_right().
@@ -137,6 +162,24 @@ public:
       return left_iterator((*base_iter_right::i_cur).pair, my_bimap);
     }
   };
+
+  // Возващает итератор на минимальный по порядку left.
+  left_iterator begin_left() const {
+    return left_iterator(left_tree.begin(), this);
+  }
+  // Возващает итератор на следующий за последним по порядку left.
+  left_iterator end_left() const {
+    return left_iterator(left_tree.end(), this);
+  }
+
+  // Возващает итератор на минимальный по порядку right.
+  right_iterator begin_right() const {
+    return right_iterator(right_tree.begin(), this);
+  }
+  // Возващает итератор на следующий за последним по порядку right.
+  right_iterator end_right() const {
+    return right_iterator(right_tree.end(), this);
+  }
 
   // Создает bimap не содержащий ни одной пары.
   bimap(CompareLeft compare_left = CompareLeft(),
@@ -154,7 +197,19 @@ public:
   //  // Деструктор. Вызывается при удалении объектов bimap.
   //  // Инвалидирует все итераторы ссылающиеся на элементы этого bimap
   //  // (включая итераторы ссылающиеся на элементы следующие за последними).
-  ~bimap() {}
+  ~bimap() {
+    for (auto it = begin_left(); it != end_left(); it++)
+    {
+      delete &(*(it));
+      delete &(*(it.flip()));
+    }
+//
+//    auto it = begin_left();
+//    while(it != end_left())
+//    {
+//      it = erase_left(it);
+//    }
+  }
   //
   // Вставка пары (left, right), возвращает итератор на left.
   // Если такой left или такой right уже присутствуют в bimap, вставка не
@@ -162,18 +217,23 @@ public:
 
 private:
   left_iterator add(left_t left, right_t right) {
+    left_t *l_data = new left_t (std::move(left));
     typename Tree<l_node, compare_l_node>::iterator iter_left_tree =
-        left_tree.add(l_node{std::move(left)});
+        left_tree.add(l_node{l_data});
 
     if (iter_left_tree == left_tree.end()) {
+      delete l_data;
       return end_left();
     }
 
+    right_t *r_data = new right_t (std::move(right));
     typename Tree<r_node, compare_r_node>::iterator iter_right_tree =
-        right_tree.add(r_node{std::move(right)});
+        right_tree.add(r_node{r_data});
 
     if (iter_right_tree == right_tree.end()) {
-      assert(!left_tree.remove(*iter_left_tree));
+      left_tree.remove(iter_left_tree);
+      delete l_data;
+      delete r_data;
       return end_left();
     }
 
@@ -207,8 +267,20 @@ public:
   left_iterator erase_left(left_iterator it) {
     left_iterator next_it = it;
     next_it++;
-    assert(!left_tree.remove(*it));
-    assert(!right_tree.remove(*((*it).pair)));
+//    Left const* d_left = &(*it);
+//    Right const* d_right = &(*(it.flip()));
+////    bool rr = left_tree.remove(l_node{d_left});
+////    bool ll = right_tree.remove(r_node{d_right});
+////    assert(rr);
+////    assert(ll);
+//
+//    left_tree.remove(it.i_cur);
+//    right_tree.remove(it.flip().i_cur);
+//
+//
+//    delete d_left;
+//    delete d_right;
+
     return next_it;
   }
   //  // Аналогично erase, но по ключу, удаляет элемент если он присутствует,
@@ -226,25 +298,25 @@ public:
   //
   // Возвращает итератор по элементу. Если не найден - соответствующий end()
   left_iterator find_left(left_t const& left) const {
-    left_iterator iter(left_tree.find(l_node{std::move(left)}), this);
+    return {left_tree.find(l_node{&left}), this};
   }
   right_iterator find_right(right_t const& right) const {
-    right_iterator iter(right_tree.find(r_node{std::move(right)}), this);
+    return {right_tree.find(r_node{&right}), this};
   }
 
   // Возвращает противоположный элемент по элементу
   // Если элемента не существует -- бросает std::out_of_range
   right_t const& at_left(left_t const& key) const {
 
-    left_iterator iter(left_tree.find(l_node{key}), this);
+    left_iterator iter(left_tree.find(l_node{&key}), this);
     if (iter == end_left())
       throw std::out_of_range("cannot find el");
     return *(iter.flip());
   }
   left_t const& at_right(right_t const& key) const {
 
-    right_iterator iter(right_tree.find(r_node{key}), this);
-    if (iter == end_left())
+    right_iterator iter(right_tree.find(r_node{&key}), this);
+    if (iter == end_right())
       throw std::out_of_range("cannot find el");
     return *(iter.flip());
   }
@@ -266,24 +338,6 @@ public:
   //
   //  right_iterator lower_bound_right(const right_t &left) const;
   //  right_iterator upper_bound_right(const right_t &left) const;
-
-  // Возващает итератор на минимальный по порядку left.
-  left_iterator begin_left() const {
-    return left_iterator(left_tree.begin(), this);
-  }
-  // Возващает итератор на следующий за последним по порядку left.
-  left_iterator end_left() const {
-    return left_iterator(left_tree.end(), this);
-  }
-
-  // Возващает итератор на минимальный по порядку right.
-  right_iterator begin_right() const {
-    return right_iterator(right_tree.begin(), this);
-  }
-  // Возващает итератор на следующий за последним по порядку right.
-  right_iterator end_right() const {
-    return right_iterator(right_tree.end(), this);
-  }
 
   // Проверка на пустоту
   bool empty() const {

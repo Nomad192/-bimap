@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iterator>
 #include <utility>
+#include <cassert>
 
 struct Node {
   Node* parent;
@@ -70,7 +71,7 @@ struct DNode : Node {
   }
 
   DNode<T, Compare>* find(const T& x, Compare const& compare) const {
-    auto* cur = const_cast<DNode<T, Compare>*>(this);
+    auto* cur = const_cast<DNode<T, Compare>*>(this); ///!!!!!!!!!!!!!!!!!!
     while (cur) {
       if (compare(cur->data, x))
         cur = make_pointer(cur->rght);
@@ -82,19 +83,21 @@ struct DNode : Node {
     return cur;
   }
 
-  DNode<T, Compare>* remove_node(DNode<T, Compare>* cur) {
+  DNode<T, Compare>* remove_node(DNode<T, Compare>* cur) { ///!!!!!!!!!!!!!!!!
     if (cur->rght != nullptr && cur->left == nullptr) {
       if (cur->is_right())
         cur->parent->rght = cur->rght;
       else
         cur->parent->left = cur->rght;
       cur->rght->parent = cur->parent;
+      cur->rght = nullptr;
     } else if (cur->rght == nullptr && cur->left != nullptr) {
       if (cur->is_right())
         cur->parent->rght = cur->left;
       else
         cur->parent->left = cur->left;
       cur->left->parent = cur->parent;
+      cur->left = nullptr;
     } else if (cur->rght != nullptr && cur->left != nullptr) {
       DNode<T, Compare>* next = make_pointer(cur->next());
       swap_val(*cur, *next);
@@ -103,15 +106,21 @@ struct DNode : Node {
     return cur;
   }
 
-  bool remove(const T& x, Compare& compare) {
+  bool remove(const T& x, Compare& compare) { ///!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DNode<T, Compare>* cur = find(x, compare);
     if (cur == nullptr)
       return false;
 
     cur = remove_node(cur);
+    assert(cur->rght == nullptr && cur->left == nullptr);
 
     delete cur;
     return true;
+  }
+
+  void remove_this()
+  {
+    delete remove_node(this);
   }
 
   ~DNode() override {
@@ -411,5 +420,9 @@ public:
       return true;
     }
     return false;
+  }
+
+  void remove(iterator it) {
+    static_cast<DNode<T, Compare>*>(it.cur)->remove_this();
   }
 };
