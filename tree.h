@@ -211,13 +211,45 @@ struct Sentinel : Node {
 ///==========================================================================///
 template <typename T, typename Compare = std::less<T>>
 class Tree {
-  Compare comp = Compare{};
+  Compare comp;
   Sentinel<T, Compare> sentinel;
   size_t n_node = 0;
 
 public:
+  Compare get_compare() const
+  {
+    return this->comp;
+  }
+
   Tree() = default;
-  explicit Tree(Compare compare) : comp(std::move(compare)) {}
+  Tree(Compare compare) : comp(std::move(compare)) {}
+
+  Tree(Tree const& other) : comp(other.comp)
+  {
+    for(auto it = other.begin(); it != other.end(); it++)
+    {
+      this->add(*it);
+    }
+  }
+
+  Tree(Tree &&other) : comp(other.comp)
+  {
+    this->swap(other);
+  }
+
+  Tree& operator=(Tree const& other)
+  {
+    if(this != &other)
+        Tree(other).swap( *this);
+    return *this;
+  }
+
+  Tree& operator=(Tree && other)
+  {
+    if(this != &other)
+        Tree(std::move(other)).swap(*this);
+    return *this;
+  }
 
   bool empty() const {
     return sentinel.empty();

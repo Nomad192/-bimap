@@ -66,9 +66,9 @@ class bimap {
       return (*i_cur).data;
     }
 
-        // Переход к следующему по величине left'у.
-        // Инкремент итератора end_left() неопределен.
-        // Инкремент невалидного итератора неопределен.
+    // Переход к следующему по величине left'у.
+    // Инкремент итератора end_left() неопределен.
+    // Инкремент невалидного итератора неопределен.
     base_iterator& operator++() {
       ++i_cur;
       return *this;
@@ -104,12 +104,10 @@ class bimap {
   using base_iter_right = base_iterator<Right, Left, CompareRight, CompareLeft>;
 
 public:
-  void swap(bimap &other)
-  {
+  void swap(bimap& other) {
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
   }
-
 
   struct right_iterator; // По аналогии с left_iterator
   struct left_iterator : base_iter_left {
@@ -201,12 +199,27 @@ public:
       : left_tree(std::move(compare_l_node(compare_left))),
         right_tree(std::move(compare_r_node(compare_right))) {}
 
-  //  // Конструкторы от других и присваивания
-  //  bimap(bimap const &other);
-  //  bimap(bimap &&other) noexcept;
-  //
-  //  bimap &operator=(bimap const &other);
-  //  bimap &operator=(bimap &&other) noexcept;
+  // Конструкторы от других и присваивания
+  bimap(bimap const& other) : left_tree(other.left_tree.get_compare()), right_tree(other.right_tree.get_compare()) {
+    for(auto it = other.begin_left(); it != other.end_left(); it++)
+    {
+        this->add(*it, *(it.flip()));
+    }
+  }
+  bimap(bimap&& other) noexcept
+      : left_tree(std::move(other.left_tree)),
+        right_tree(std::move(other.right_tree)) {}
+
+  bimap& operator=(bimap const& other) {
+    if(this != &other)
+      bimap(other).swap(*this);
+    return *this;
+  }
+  bimap& operator=(bimap&& other) noexcept {
+    if(this != &other)
+      bimap(std::move(other)).swap(*this);
+    return *this;
+  }
 
   // Деструктор. Вызывается при удалении объектов bimap.
   // Инвалидирует все итераторы ссылающиеся на элементы этого bimap
@@ -309,16 +322,14 @@ public:
 
   // erase от ренжа, удаляет [first, last), возвращает итератор на последний
   // элемент за удаленной последовательностью
-  left_iterator erase_left(left_iterator first, left_iterator last)
-  {
-    while(first != last)
-          first = erase_left(first);
+  left_iterator erase_left(left_iterator first, left_iterator last) {
+    while (first != last)
+      first = erase_left(first);
 
     return last;
   }
-  right_iterator erase_right(right_iterator first, right_iterator last)
-  {
-    while(first != last)
+  right_iterator erase_right(right_iterator first, right_iterator last) {
+    while (first != last)
       first = erase_right(first);
 
     return last;
@@ -392,7 +403,6 @@ public:
     return *(r_iter.flip());
   }
 
-
   //  // lower и upper bound'ы по каждой стороне
   //  // Возвращают итераторы на соответствующие элементы
   //  // Смотри std::lower_bound, std::upper_bound.
@@ -416,7 +426,36 @@ public:
     return left_tree.size();
   }
 
-  //  // операторы сравнения
-  //  friend bool operator==(bimap const &a, bimap const &b);
-  //  friend bool operator!=(bimap const &a, bimap const &b);
+//  // операторы сравнения
+//  friend bool operator==(bimap const& a, bimap const& b);
+//  friend bool operator!=(bimap const& a, bimap const& b);
 };
+
+template<typename L, typename R, typename cL, typename cR>
+bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
+{
+  if(a.size() != b.size())
+    return false;
+
+  for(auto it_a = a.begin_left(), it_b = b.begin_left(); it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++)
+  {
+    if(*it_a != *it_b)
+      return false;
+    if(*it_a.flip() != *it_b.flip())
+      return false;
+  }
+
+//  for(auto it_a = a.begin_right(), it_b = b.begin_right(); it_a != a.end_right() && it_b != b.end_right(); it_a++, it_b++)
+//  {
+//    if(*it_a != *it_b)
+//      return false;
+//  }
+
+  return true;
+}
+
+template<typename L, typename R, typename cL, typename cR>
+bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
+{
+  return !(a == b);
+}
