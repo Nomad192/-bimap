@@ -383,7 +383,7 @@ public:
         return ll;
       } else {
         right_t* r_data = new right_t(key);
-        delete (*(r_iter.flip().i_cur)).data;
+        delete (*(l_iter.flip().i_cur)).data;
         (*(l_iter.flip().i_cur)).data = r_data;
         return *l_iter;
       }
