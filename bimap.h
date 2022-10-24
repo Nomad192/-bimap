@@ -291,6 +291,8 @@ public:
 
   right_iterator erase_right(right_iterator it) {
     typename Tree<l_node, compare_l_node>::iterator l_it = it.flip().i_cur;
+    delete (*l_it).data;
+    delete (*(it.i_cur)).data;
     typename Tree<r_node, compare_r_node>::iterator next_it =
         right_tree.remove(it.i_cur);
     left_tree.remove(l_it);
@@ -362,6 +364,7 @@ public:
         return *(add(key, r_data).flip());
       } else {
         left_t* l_data = new left_t(key);
+        delete (*(r_iter.flip().i_cur)).data;
         (*(r_iter.flip().i_cur)).data = l_data;
         return *r_iter;
       }
@@ -380,6 +383,7 @@ public:
         return ll;
       } else {
         right_t* r_data = new right_t(key);
+        delete (*(r_iter.flip().i_cur)).data;
         (*(l_iter.flip().i_cur)).data = r_data;
         return *l_iter;
       }
