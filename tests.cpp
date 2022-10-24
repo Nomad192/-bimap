@@ -150,14 +150,14 @@ TEST(bimap, find) {
   EXPECT_EQ(b.find_right(-1000), b.end_right());
 }
 
-//TEST(bimap, empty) {
-//  bimap<int, int> b;
-//  EXPECT_TRUE(b.empty());
-//  auto it = b.insert(1, 1);
-//  EXPECT_FALSE(b.empty());
-//  b.erase_left(it);
-//  EXPECT_TRUE(b.empty());
-//}
+TEST(bimap, empty) {
+  bimap<int, int> b;
+  EXPECT_TRUE(b.empty());
+  auto it = b.insert(1, 1);
+  EXPECT_FALSE(b.empty());
+  b.erase_left(it);
+  EXPECT_TRUE(b.empty());
+}
 
 TEST(bimap, insert_exist) {
   bimap<int, int> b;
@@ -170,57 +170,57 @@ TEST(bimap, insert_exist) {
   EXPECT_EQ(b.size(), 3);
 }
 
-//TEST(bimap, erase_iterator) {
-//  bimap<int, int> b;
-//  auto it = b.insert(1, 2);
-//  b.insert(5, 10);
-//  b.insert(100, 200);
-//  auto it1 = b.erase_left(it);
-//  EXPECT_EQ(b.size(), 2);
-//  EXPECT_EQ(*it1, 5);
-//
-//  it = b.insert(-1, -2);
-//  auto itr = b.erase_right(it.flip());
-//  EXPECT_EQ(b.size(), 2);
-//  EXPECT_EQ(*itr, 10);
-//}
-//
-//TEST(bimap, erase_value) {
-//  bimap<int, int> b;
-//
-//  b.insert(111, 222);
-//  b.insert(333, 444);
-//  EXPECT_TRUE(b.erase_left(111));
-//  EXPECT_EQ(b.size(), 1);
-//  EXPECT_FALSE(b.erase_right(333333));
-//  EXPECT_EQ(b.size(), 1);
-//  EXPECT_TRUE(b.erase_right(444));
-//  EXPECT_TRUE(b.empty());
-//}
-//
-//TEST(bimap, erase_range) {
-//  bimap<int, int> b;
-//
-//  b.insert(1, 2);
-//  auto f = b.insert(2, 3);
-//  b.insert(3, 4);
-//  auto l = b.insert(4, 5);
-//  b.insert(5, 6);
-//
-//  auto it = b.erase_left(f, l);
-//  EXPECT_EQ(*it, 4);
-//  EXPECT_EQ(b.size(), 3);
-//
-//  auto f1 = b.insert(100, 4).flip();
-//  auto l1 = b.insert(200, 10).flip();
-//
-//  auto it1 = b.erase_right(f1, l1);
-//  EXPECT_EQ(*it1, 10);
-//  EXPECT_EQ(b.size(), 2);
-//
-//  b.erase_left(b.begin_left(), b.end_left());
-//  EXPECT_TRUE(b.empty());
-//}
+TEST(bimap, erase_iterator) {
+  bimap<int, int> b;
+  auto it = b.insert(1, 2);
+  b.insert(5, 10);
+  b.insert(100, 200);
+  auto it1 = b.erase_left(it);
+  EXPECT_EQ(b.size(), 2);
+  EXPECT_EQ(*it1, 5);
+
+  it = b.insert(-1, -2);
+  auto itr = b.erase_right(it.flip());
+  EXPECT_EQ(b.size(), 2);
+  EXPECT_EQ(*itr, 10);
+}
+
+TEST(bimap, erase_value) {
+  bimap<int, int> b;
+
+  b.insert(111, 222);
+  b.insert(333, 444);
+  EXPECT_TRUE(b.erase_left(111));
+  EXPECT_EQ(b.size(), 1);
+  EXPECT_FALSE(b.erase_right(333333));
+  EXPECT_EQ(b.size(), 1);
+  EXPECT_TRUE(b.erase_right(444));
+  EXPECT_TRUE(b.empty());
+}
+
+TEST(bimap, erase_range) {
+  bimap<int, int> b;
+
+  b.insert(1, 2);
+  auto f = b.insert(2, 3);
+  b.insert(3, 4);
+  auto l = b.insert(4, 5);
+  b.insert(5, 6);
+
+  auto it = b.erase_left(f, l);
+  EXPECT_EQ(*it, 4);
+  EXPECT_EQ(b.size(), 3);
+
+  auto f1 = b.insert(100, 4).flip();
+  auto l1 = b.insert(200, 10).flip();
+
+  auto it1 = b.erase_right(f1, l1);
+  EXPECT_EQ(*it1, 10);
+  EXPECT_EQ(b.size(), 2);
+
+  b.erase_left(b.begin_left(), b.end_left());
+  EXPECT_TRUE(b.empty());
+}
 //
 //TEST(bimap, lower_bound) {
 //  bimap<int, int> b;
@@ -286,93 +286,93 @@ TEST(bimap, insert_exist) {
 //  EXPECT_NE(a, b);
 //
 //  EXPECT_EQ(a.end_left().flip(), a.end_right());
-//  EXPECT_EQ(a.end_right().flip(), a.end_lef  дщпшt());
+//  EXPECT_EQ(a.end_right().flip(), a.end_left());
 //}
-//
-//TEST(bimap, iterator_ops) {
-//  bimap<int, int> b;
-//  b.insert(3, 4);
-//  b.insert(100, 10);
-//  auto it = b.insert(-10, 100);
-//
-//  auto it_next = it;
-//  EXPECT_EQ(it_next++, it);
-//
-//  EXPECT_EQ(++it, it_next--);
-//  EXPECT_EQ(--it, it_next);
-//}
-//
-//TEST(bimap, iterating) {
-//  bimap<int, int> b;
-//  b.insert(1, 0);
-//  b.insert(2, 10);
-//  b.insert(3, 100);
-//
-//  std::vector<int> left_values;
-//  for (auto it = b.begin_left(); it != b.end_left(); ++it) {
-//    left_values.push_back(*it);
-//  }
-//  std::vector<int> left_values_inv;
-//  for (auto it = b.end_left(); it != b.begin_left();) {
-//    --it;
-//    left_values_inv.push_back(*it);
-//  }
-//  std::reverse(left_values_inv.begin(), left_values_inv.end());
-//  EXPECT_EQ(left_values, left_values_inv);
-//
-//  std::vector<int> right_values;
-//  for (auto it = b.begin_right(); it != b.end_right(); ++it) {
-//    right_values.push_back(*it);
-//  }
-//  std::vector<int> right_values_inv;
-//  for (auto it = b.end_right(); it != b.begin_right();) {
-//    --it;
-//    right_values_inv.push_back(*it);
-//  }
-//  std::reverse(right_values_inv.begin(), right_values_inv.end());
-//  EXPECT_EQ(right_values, right_values_inv);
-//}
-//
-//TEST(bimap, swap) {
-//  bimap<int, int> b, b1;
-//  b.insert(3, 4);
-//  b1.insert(4, 3);
-//  EXPECT_EQ(*b.find_left(3), 3);
-//  EXPECT_EQ(*b1.find_right(3), 3);
-//  b.swap(b1);
-//  EXPECT_EQ(*b1.find_left(3), 3);
-//  EXPECT_EQ(*b.find_right(3), 3);
-//}
-//
-//template <typename T>
-//std::vector<std::pair<T, T>>
-//eliminate_same(std::vector<T>& lefts, std::vector<T>& rights, std::mt19937& e) {
-//  // std::sort(lefts.begin(), lefts.end());
-//  auto last = std::unique(lefts.begin(), lefts.end());
-//  lefts.erase(last, lefts.end());
-//  last = std::unique(rights.begin(), rights.end());
-//  rights.erase(last, rights.end());
-//
-//  size_t min = std::min(lefts.size(), rights.size());
-//  lefts.resize(min);
-//  rights.resize(min);
-//
-//  std::shuffle(lefts.begin(), lefts.end(), e);
-//  std::shuffle(rights.begin(), rights.end(), e);
-//
-//  std::vector<std::pair<T, T>> res(min);
-//  for (size_t i = 0; i < min; i++) {
-//    res[i] = {lefts[i], rights[i]};
-//  }
-//
-//  return res;
-//}
-//
-//template struct bimap<int, non_default_constructible>;
-//template struct bimap<non_default_constructible, int>;
-//
-//static constexpr uint32_t seed = 1488228;
-//
+
+TEST(bimap, iterator_ops) {
+  bimap<int, int> b;
+  b.insert(3, 4);
+  b.insert(100, 10);
+  auto it = b.insert(-10, 100);
+
+  auto it_next = it;
+  EXPECT_EQ(it_next++, it);
+
+  EXPECT_EQ(++it, it_next--);
+  EXPECT_EQ(--it, it_next);
+}
+
+TEST(bimap, iterating) {
+  bimap<int, int> b;
+  b.insert(1, 0);
+  b.insert(2, 10);
+  b.insert(3, 100);
+
+  std::vector<int> left_values;
+  for (auto it = b.begin_left(); it != b.end_left(); ++it) {
+    left_values.push_back(*it);
+  }
+  std::vector<int> left_values_inv;
+  for (auto it = b.end_left(); it != b.begin_left();) {
+    --it;
+    left_values_inv.push_back(*it);
+  }
+  std::reverse(left_values_inv.begin(), left_values_inv.end());
+  EXPECT_EQ(left_values, left_values_inv);
+
+  std::vector<int> right_values;
+  for (auto it = b.begin_right(); it != b.end_right(); ++it) {
+    right_values.push_back(*it);
+  }
+  std::vector<int> right_values_inv;
+  for (auto it = b.end_right(); it != b.begin_right();) {
+    --it;
+    right_values_inv.push_back(*it);
+  }
+  std::reverse(right_values_inv.begin(), right_values_inv.end());
+  EXPECT_EQ(right_values, right_values_inv);
+}
+
+TEST(bimap, swap) {
+  bimap<int, int> b, b1;
+  b.insert(3, 4);
+  b1.insert(4, 3);
+  EXPECT_EQ(*b.find_left(3), 3);
+  EXPECT_EQ(*b1.find_right(3), 3);
+  b.swap(b1);
+  EXPECT_EQ(*b1.find_left(3), 3);
+  EXPECT_EQ(*b.find_right(3), 3);
+}
+
+template <typename T>
+std::vector<std::pair<T, T>>
+eliminate_same(std::vector<T>& lefts, std::vector<T>& rights, std::mt19937& e) {
+  // std::sort(lefts.begin(), lefts.end());
+  auto last = std::unique(lefts.begin(), lefts.end());
+  lefts.erase(last, lefts.end());
+  last = std::unique(rights.begin(), rights.end());
+  rights.erase(last, rights.end());
+
+  size_t min = std::min(lefts.size(), rights.size());
+  lefts.resize(min);
+  rights.resize(min);
+
+  std::shuffle(lefts.begin(), lefts.end(), e);
+  std::shuffle(rights.begin(), rights.end(), e);
+
+  std::vector<std::pair<T, T>> res(min);
+  for (size_t i = 0; i < min; i++) {
+    res[i] = {lefts[i], rights[i]};
+  }
+
+  return res;
+}
+
+template struct bimap<int, non_default_constructible>;
+template struct bimap<non_default_constructible, int>;
+
+static constexpr uint32_t seed = 1488228;
+
 //TEST(bimap_randomized, comparison) {
 //  std::cout << "Seed used for randomized compare test is " << seed << std::endl;
 //
