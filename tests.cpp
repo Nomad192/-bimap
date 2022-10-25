@@ -221,41 +221,41 @@ TEST(bimap, erase_range) {
   b.erase_left(b.begin_left(), b.end_left());
   EXPECT_TRUE(b.empty());
 }
-//
-//TEST(bimap, lower_bound) {
-//  bimap<int, int> b;
-//
-//  std::vector<std::pair<int, int>> data = {
-//      {1, 2}, {2, 3}, {3, 4}, {8, 16}, {32, 66}};
-//
-//  std::shuffle(data.begin(), data.end(), std::random_device{});
-//  for (auto const& p : data) {
-//    b.insert(p.first, p.second);
-//  }
-//
-//  EXPECT_EQ(*b.lower_bound_left(5), 8);
-//  EXPECT_EQ(*b.lower_bound_right(4), 4);
-//  EXPECT_EQ(*b.lower_bound_left(4).flip(), 16);
-//  EXPECT_EQ(b.lower_bound_right(100), b.end_right());
-//  EXPECT_EQ(b.lower_bound_left(100), b.end_left());
-//}
-//
-//TEST(bimap, upper_bound) {
-//  bimap<int, int> b;
-//
-//  std::vector<std::pair<int, int>> data = {
-//      {1, 2}, {2, 3}, {3, 4}, {8, 16}, {32, 66}};
-//
-//  std::shuffle(data.begin(), data.end(), std::random_device{});
-//  for (auto const& p : data) {
-//    b.insert(p.first, p.second);
-//  }
-//
-//  EXPECT_EQ(*b.upper_bound_left(5), 8);
-//  EXPECT_EQ(*b.upper_bound_right(-100), 2);
-//  EXPECT_EQ(b.upper_bound_right(100), b.end_right());
-//  EXPECT_EQ(b.upper_bound_left(400), b.end_left());
-//}
+
+TEST(bimap, lower_bound) {
+  bimap<int, int> b;
+
+  std::vector<std::pair<int, int>> data = {
+      {1, 2}, {2, 3}, {3, 4}, {8, 16}, {32, 66}};
+
+  std::shuffle(data.begin(), data.end(), std::random_device{});
+  for (auto const& p : data) {
+    b.insert(p.first, p.second);
+  }
+
+  EXPECT_EQ(*b.lower_bound_left(5), 8);
+  EXPECT_EQ(*b.lower_bound_right(4), 4);
+  EXPECT_EQ(*b.lower_bound_left(4).flip(), 16);
+  EXPECT_EQ(b.lower_bound_right(100), b.end_right());
+  EXPECT_EQ(b.lower_bound_left(100), b.end_left());
+}
+
+TEST(bimap, upper_bound) {
+  bimap<int, int> b;
+
+  std::vector<std::pair<int, int>> data = {
+      {1, 2}, {2, 3}, {3, 4}, {8, 16}, {32, 66}};
+
+  std::shuffle(data.begin(), data.end(), std::random_device{});
+  for (auto const& p : data) {
+    b.insert(p.first, p.second);
+  }
+
+  EXPECT_EQ(*b.upper_bound_left(5), 8);
+  EXPECT_EQ(*b.upper_bound_right(-100), 2);
+  EXPECT_EQ(b.upper_bound_right(100), b.end_right());
+  EXPECT_EQ(b.upper_bound_left(400), b.end_left());
+}
 
 TEST(bimap, assigment) {
   bimap<int, int> a;
@@ -373,75 +373,75 @@ template struct bimap<non_default_constructible, int>;
 
 static constexpr uint32_t seed = 1488228;
 
-//TEST(bimap_randomized, comparison) {
-//  std::cout << "Seed used for randomized compare test is " << seed << std::endl;
-//
-//  bimap<uint32_t, uint32_t> b1;
-//  bimap<uint32_t, uint32_t> b2;
-//
-//  size_t total = 40000;
-//  std::mt19937 e(seed);
-//  std::vector<uint32_t> lefts(total), rights(total);
-//  for (size_t i = 0; i < total; i++) {
-//    lefts[i] = e();
-//    rights[i] = e();
-//  }
-//  auto future_insertions = eliminate_same(lefts, rights, e);
-//
-//  std::shuffle(future_insertions.begin(), future_insertions.end(), e);
-//  for (auto p : future_insertions) {
-//    b1.insert(p.first, p.second);
-//  }
-//
-//  std::shuffle(future_insertions.begin(), future_insertions.end(), e);
-//  for (auto p : future_insertions) {
-//    b2.insert(p.first, p.second);
-//  }
-//
-//  EXPECT_EQ(b1.size(), b2.size());
-//  EXPECT_EQ(b1, b2);
-//}
-//
-//TEST(bimap_randomized, invariant_check) {
-//  std::cout << "Seed used for randomized invariant test is " << seed
-//            << std::endl;
-//  bimap<int, int> b;
-//
-//  std::mt19937 e(seed);
-//  size_t ins = 0, skip = 0, total = 50000;
-//  for (size_t i = 0; i < total; i++) {
-//    auto op = e() % 10;
-//    if (op > 2) {
-//      ins++;
-//      b.insert(e(), e());
-//    } else {
-//      if (b.empty()) {
-//        skip++;
-//        continue;
-//      }
-//      auto it = b.end_left();
-//      while (it == b.end_left()) {
-//        it = b.lower_bound_left(e());
-//      }
-//      b.erase_left(it);
-//    }
-//    if (i % 100 == 0) {
-//      int previous = *b.begin_left();
-//      for (auto it = ++b.begin_left(); it != b.end_left(); it++) {
-//        EXPECT_GT(*it, previous);
-//        previous = *it;
-//      }
-//      previous = *b.begin_right();
-//      for (auto it = ++b.begin_right(); it != b.end_right(); it++) {
-//        EXPECT_GT(*it, previous);
-//        previous = *it;
-//      }
-//    }
-//  }
-//  std::cout << "Invariant check stats:" << std::endl;
-//  std::cout << "Performed " << ins << " insertions and " << total - ins - skip
-//            << " erasures. " << skip << " skipped." << std::endl;
-//}
+TEST(bimap_randomized, comparison) {
+  std::cout << "Seed used for randomized compare test is " << seed << std::endl;
+
+  bimap<uint32_t, uint32_t> b1;
+  bimap<uint32_t, uint32_t> b2;
+
+  size_t total = 40000;
+  std::mt19937 e(seed);
+  std::vector<uint32_t> lefts(total), rights(total);
+  for (size_t i = 0; i < total; i++) {
+    lefts[i] = e();
+    rights[i] = e();
+  }
+  auto future_insertions = eliminate_same(lefts, rights, e);
+
+  std::shuffle(future_insertions.begin(), future_insertions.end(), e);
+  for (auto p : future_insertions) {
+    b1.insert(p.first, p.second);
+  }
+
+  std::shuffle(future_insertions.begin(), future_insertions.end(), e);
+  for (auto p : future_insertions) {
+    b2.insert(p.first, p.second);
+  }
+
+  EXPECT_EQ(b1.size(), b2.size());
+  EXPECT_EQ(b1, b2);
+}
+
+TEST(bimap_randomized, invariant_check) {
+  std::cout << "Seed used for randomized invariant test is " << seed
+            << std::endl;
+  bimap<int, int> b;
+
+  std::mt19937 e(seed);
+  size_t ins = 0, skip = 0, total = 50000;
+  for (size_t i = 0; i < total; i++) {
+    auto op = e() % 10;
+    if (op > 2) {
+      ins++;
+      b.insert(e(), e());
+    } else {
+      if (b.empty()) {
+        skip++;
+        continue;
+      }
+      auto it = b.end_left();
+      while (it == b.end_left()) {
+        it = b.lower_bound_left(e());
+      }
+      b.erase_left(it);
+    }
+    if (i % 100 == 0) {
+      int previous = *b.begin_left();
+      for (auto it = ++b.begin_left(); it != b.end_left(); it++) {
+        EXPECT_GT(*it, previous);
+        previous = *it;
+      }
+      previous = *b.begin_right();
+      for (auto it = ++b.begin_right(); it != b.end_right(); it++) {
+        EXPECT_GT(*it, previous);
+        previous = *it;
+      }
+    }
+  }
+  std::cout << "Invariant check stats:" << std::endl;
+  std::cout << "Performed " << ins << " insertions and " << total - ins - skip
+            << " erasures. " << skip << " skipped." << std::endl;
+}
 //
 //TEST(bimap_randomized, compare_to_two_maps) {
 //  std::cout << "Seed used for randomized cmp2map test is " << seed << std::endl;

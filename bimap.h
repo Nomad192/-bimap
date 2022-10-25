@@ -403,14 +403,26 @@ public:
     return *(r_iter.flip());
   }
 
-  //  // lower и upper bound'ы по каждой стороне
-  //  // Возвращают итераторы на соответствующие элементы
-  //  // Смотри std::lower_bound, std::upper_bound.
-  //  left_iterator lower_bound_left(const left_t &left) const;
-  //  left_iterator upper_bound_left(const left_t &left) const;
-  //
-  //  right_iterator lower_bound_right(const right_t &left) const;
-  //  right_iterator upper_bound_right(const right_t &left) const;
+    // lower и upper bound'ы по каждой стороне
+    // Возвращают итераторы на соответствующие элементы
+    // Смотри std::lower_bound, std::upper_bound.
+    left_iterator lower_bound_left(const left_t &left) const
+    {
+      return {left_tree.find_next(l_node(&left)), this};
+    }
+    left_iterator upper_bound_left(const left_t &left) const
+    {
+      return {left_tree.find_next(l_node(&left)), this};
+    }
+
+    right_iterator lower_bound_right(const right_t &right) const
+    {
+      return {right_tree.find_next(r_node(&right)), this};
+    }
+    right_iterator upper_bound_right(const right_t &right) const
+    {
+      return {right_tree.find_next(r_node(&right)), this};
+    }
 
   // Проверка на пустоту
   bool empty() const {
@@ -425,12 +437,9 @@ public:
 
     return left_tree.size();
   }
-
-//  // операторы сравнения
-//  friend bool operator==(bimap const& a, bimap const& b);
-//  friend bool operator!=(bimap const& a, bimap const& b);
 };
 
+// операторы сравнения
 template<typename L, typename R, typename cL, typename cR>
 bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
 {
@@ -444,12 +453,6 @@ bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
     if(*it_a.flip() != *it_b.flip())
       return false;
   }
-
-//  for(auto it_a = a.begin_right(), it_b = b.begin_right(); it_a != a.end_right() && it_b != b.end_right(); it_a++, it_b++)
-//  {
-//    if(*it_a != *it_b)
-//      return false;
-//  }
 
   return true;
 }
