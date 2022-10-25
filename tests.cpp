@@ -54,6 +54,27 @@ TEST(bimap, custom_parametrized_comparator) {
   }
 }
 
+TEST(bimap, copies) {
+  bimap<int, int> b;
+  b.insert(3, 4);
+  bimap<int, int> b1(b);
+  EXPECT_EQ(*b.find_left(3).flip(), 4);
+  b1.insert(4, 5);
+  EXPECT_EQ(b.find_left(4), b.end_left());
+
+  b1.insert(10, -10);
+  b = b1;
+  EXPECT_NE(b.find_right(-10), b.end_right());
+}
+
+TEST(bimap, insert) {
+  bimap<int, int> b;
+  b.insert(4, 10);
+  b.insert(10, 4);
+  EXPECT_EQ(*b.find_right(4).flip(), 10);
+  EXPECT_EQ(b.at_left(10), 4);
+}
+
 TEST(bimap, insert_move) {
   bimap<int, test_object> b;
   test_object x(3), x2(3);
