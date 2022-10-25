@@ -23,6 +23,12 @@ struct Node {
 
   Node* next();
   Node* prev();
+  virtual void set_child(Node* child, Node* set) {
+    if (child->is_right())
+      this->rght = set;
+    else
+      this->left = set;
+  }
 };
 ///--------------------------------------------------------------------------///
 template <typename T, typename Compare = std::less<T>>
@@ -82,7 +88,7 @@ struct DNode : Node {
   }
 
   Node* find_fake_node(const T& x, Compare const& compare,
-                       Node* fake_node ) const {
+                       Node* fake_node) const {
     DNode<T, Compare>* cur =
         const_cast<DNode<T, Compare>*>(this); ///!!!!!!!!!!!!!!!!!!
     do {
@@ -111,11 +117,12 @@ struct DNode : Node {
 
   Node* find_next(const T& x, Compare const& compare) const {
     Node fake_node(nullptr);
-    Node *cur = find_fake_node(x, compare, &fake_node);
-    if(fake_node.parent != nullptr)
-    {
+    Node* cur = find_fake_node(x, compare, &fake_node);
+    if (fake_node.parent != nullptr) {
       Node* next = fake_node.next();
-      fake_node.unlink();
+      // fake_node.parent->set_child(&fake_node, nullptr);
+      //      fake_node.unlink();
+      //      fake_node.parent = nullptr;
       return next;
     }
     return cur;
@@ -123,9 +130,8 @@ struct DNode : Node {
 
   Node* find_prev(const T& x, Compare const& compare) const {
     Node fake_node(nullptr);
-    Node *cur = find_fake_node(x, compare, &fake_node);
-    if(fake_node.parent != nullptr)
-    {
+    Node* cur = find_fake_node(x, compare, &fake_node);
+    if (fake_node.parent != nullptr) {
       Node* prev = fake_node.prev();
       fake_node.unlink();
       return prev;
@@ -136,17 +142,19 @@ struct DNode : Node {
   Node* unlink_node(DNode<T, Compare>* cur) { ///!!!!!!!!!!!!!!!!
     Node* next_local = cur->next();
     if (cur->rght != nullptr && cur->left == nullptr) {
-      if (cur->is_right())
-        cur->parent->rght = cur->rght;
-      else
-        cur->parent->left = cur->rght;
+      cur->parent->set_child(this, cur->rght);
+      //      if (cur->is_right())
+      //        cur->parent->rght = cur->rght;
+      //      else
+      //        cur->parent->left = cur->rght;
       cur->rght->parent = cur->parent;
       cur->rght = nullptr;
     } else if (cur->rght == nullptr && cur->left != nullptr) {
-      if (cur->is_right())
-        cur->parent->rght = cur->left;
-      else
-        cur->parent->left = cur->left;
+      cur->parent->set_child(this, cur->left);
+      //      if (cur->is_right())
+      //        cur->parent->rght = cur->left;
+      //      else
+      //        cur->parent->left = cur->left;
       cur->left->parent = cur->parent;
       cur->left = nullptr;
     } else if (cur->rght != nullptr && cur->left != nullptr) {
@@ -167,23 +175,19 @@ struct DNode : Node {
       next->left = cur->left;
       next->left->parent = next;
       next->rght = cur->rght;
-      if(next->rght)
+      if (next->rght)
         next->rght->parent = next;
       next->parent = cur->parent;
       if (cur->is_right())
         cur->parent->rght = next;
       else
         cur->parent->left = next;
-
-      cur->left = nullptr;
-      cur->rght = nullptr;
     } else {
-      if (cur->is_right())
-        cur->parent->rght = nullptr;
-      else
-        cur->parent->left = nullptr;
+      cur->parent->set_child(this, nullptr);
     }
     cur->parent = nullptr;
+    cur->left = nullptr;
+    cur->rght = nullptr;
     return next_local;
   }
 
@@ -216,8 +220,24 @@ struct DNode : Node {
 ///--------------------------------------------------------------------------///
 template <typename T, typename Compare>
 struct Sentinel : Node {
-  Sentinel() : Node(nullptr) {}
+private:
+  void set_child(Node* child, Node* set) {
+    this->rght = set;
+    this->left = set;
+  }
 
+public:
+  DNode<T, Compare>* root() const {
+    // assert(left == rght);
+    left = rght;
+    return static_cast<DNode<T, Compare>*>(rght);
+  }
+
+  Node* to_node_pointer() const {
+    return const_cast<Node*>(static_cast<const Node*>(this));
+  }
+
+  Sentinel() : Node(nullptr) {}
   void swap(Sentinel& other) {
     std::swap(this->left, other.left);
     std::swap(this->rght, other.rght);
@@ -225,24 +245,44 @@ struct Sentinel : Node {
     other.rght->parent = &other;
   }
 
-  DNode<T, Compare>* root() const {
-    left = rght;
-    return static_cast<DNode<T, Compare>*>(rght);
-  }
-
   bool empty() const {
     return rght == nullptr;
   }
 
   Node* add(T&& new_data, Compare& compare, bool& is_success) {
-    if (rght == nullptr) {
-      rght = new DNode<T, Compare>(this, std::move(new_data));
-      left = rght; ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (!root()) {
+      set_child(nullptr, new DNode<T, Compare>(this, std::move(new_data)));
+      //      rght = new DNode<T, Compare>(this, std::move(new_data));
+      //      left = rght; ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       is_success = true;
       return rght;
     }
     return static_cast<DNode<T, Compare>*>(rght)->add(std::move(new_data),
                                                       compare, is_success);
+  }
+
+  Node* find(const T& x, Compare const& compare) const {
+    if (root())
+      return root()->find(x, compare);
+    return nullptr;
+  }
+
+  Node* find_next(const T& x, Compare const& compare) const {
+    if (root())
+      return root()->find_next(x, compare);
+    return this->to_node_pointer();
+  }
+
+  Node* find_prev(const T& x, Compare const& compare) const {
+    if (root())
+      return root()->find_prev(x, compare);
+    return this->to_node_pointer();
+  }
+
+  bool remove(const T& x, Compare& compare) { ///!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (root())
+      return root().remove(x, compare);
+    return false;
   }
 
   ~Sentinel() override {
@@ -295,9 +335,9 @@ public:
     return n_node;
   }
 
-  DNode<T, Compare>* root_node() {
-    return sentinel.root();
-  }
+  //  DNode<T, Compare>* root_node() {
+  //    return sentinel.root();
+  //  }
 
   void swap(Tree& b) {
     std::swap(this->n_node, b.n_node);
@@ -306,118 +346,6 @@ public:
   }
 
 private:
-  ///------------------------------------------------------------------------///
-  template <typename iT, typename iCompare>
-  class preorder_iterator {
-  private:
-    Node* cur = nullptr;
-
-    template <typename tT>
-    friend class Tree;
-
-    template <class tT>
-    static preorder_iterator begin_iter(const Tree<tT>* tree) {
-      if (tree->sentinel.root)
-        return (tree->sentinel.root);
-      return end_iter(tree);
-    }
-
-    template <class tT>
-    static preorder_iterator end_iter(const Tree<tT>* tree) {
-      return (&tree->sentinel);
-    }
-
-  public:
-    preorder_iterator(preorder_iterator&& pi) : cur(pi.cur) {
-      pi.cur == nullptr;
-    }
-    preorder_iterator(const preorder_iterator& pi) : cur(pi.cur) {}
-
-    preorder_iterator(decltype(cur) cur) : cur(cur) {}
-
-    using difference_type = ptrdiff_t;
-    using value_type = iT;
-    using pointer = value_type*;
-    using reference = value_type&;
-    using iterator_category = std::bidirectional_iterator_tag;
-
-    preorder_iterator() = default;
-
-    template <typename eq_iT, typename eq_iCompare>
-    bool operator==(preorder_iterator<eq_iT, eq_iCompare> const& other) const {
-      return cur == other.cur;
-    }
-
-    template <typename eq_iT, typename eq_iCompare>
-    bool operator!=(preorder_iterator<eq_iT, eq_iCompare> const& other) const {
-      return cur != other.cur;
-    }
-
-    bool is_end() {
-      if (cur->parent == nullptr)
-        return true;
-      return false;
-    }
-
-    DNode<iT, Compare>* get_node() const {
-      return static_cast<DNode<iT, iCompare>*>(cur);
-    }
-
-    reference operator*() const {
-      return static_cast<DNode<iT, iCompare>*>(cur)->get();
-    }
-
-    pointer operator->() const {
-      return static_cast<DNode<iT, iCompare>*>(cur)->get();
-    }
-
-    preorder_iterator& operator++() {
-      if (cur->left) {
-        cur = cur->left;
-      } else if (cur->rght) {
-        cur = cur->rght;
-      } else {
-        while (cur->parent != nullptr &&
-               (cur->parent->rght == cur ||
-                (cur->parent->left == cur && cur->parent->rght == nullptr))) {
-          cur = cur->parent;
-        }
-        if (cur->parent != nullptr)
-          cur = cur->parent->rght;
-      }
-      return *this;
-    }
-
-    preorder_iterator& operator--() {
-      if (cur->parent) {
-        if (cur->parent->left == cur || cur->parent->left == nullptr) {
-          cur = cur->parent;
-          return *this;
-        } else {
-          cur = cur->parent->left;
-        }
-      }
-      while (cur->rght != nullptr || cur->left != nullptr) {
-        if (cur->rght)
-          cur = cur->rght;
-        else
-          cur = cur->left;
-      }
-      return *this;
-    }
-
-    preorder_iterator operator++(int) {
-      preorder_iterator res(*this);
-      ++(*this);
-      return res;
-    }
-
-    preorder_iterator operator--(int) {
-      preorder_iterator res(*this);
-      --(*this);
-      return res;
-    }
-  };
   ///------------------------------------------------------------------------///
   template <typename iT, typename iCompare>
   class inorder_iterator {
@@ -473,7 +401,7 @@ private:
     }
 
     pointer operator->() const {
-      return static_cast<DNode<iT, iCompare>*>(cur)->data;
+      return &(static_cast<DNode<iT, iCompare>*>(cur)->data);
     }
 
     inorder_iterator& operator++() {
@@ -530,29 +458,30 @@ public:
     return is_success ? iterator(result) : end();
   }
 
-  iterator min() const {
-    return (Node::min_node(root_node()));
-  }
-
-  iterator max() const {
-    return (Node::max_node(root_node()));
-  }
+  //  iterator min() const {
+  //    return (Node::min_node(root_node()));
+  //  }
+  //
+  //  iterator max() const {
+  //    return (Node::max_node(root_node()));
+  //  }
 
   iterator find(const T& x) const {
-    Node* cur = sentinel.root()->find(x, comp);
+    Node* cur = sentinel.find(x, comp);
     return cur ? iterator(cur) : iterator::end_iter(this);
   }
 
   iterator find_next(const T& x) const {
-    return iterator(sentinel.root()->find_next(x, comp));
+    return iterator(sentinel.find_next(x, comp));
   }
 
   iterator find_prev(const T& x) const {
-    return iterator(sentinel.root()->find_prev(x, comp));
+    return iterator(sentinel.find_prev(x, comp));
   }
 
   bool remove(const T& x) {
-    if (sentinel.root()->remove(x, comp)) {
+
+    if (sentinel.remove(x, comp)) {
       n_node--;
       return true;
     }

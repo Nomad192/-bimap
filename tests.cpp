@@ -442,51 +442,51 @@ TEST(bimap_randomized, invariant_check) {
   std::cout << "Performed " << ins << " insertions and " << total - ins - skip
             << " erasures. " << skip << " skipped." << std::endl;
 }
-//
-//TEST(bimap_randomized, compare_to_two_maps) {
-//  std::cout << "Seed used for randomized cmp2map test is " << seed << std::endl;
-//
-//  bimap<int, int> b;
-//  std::map<int, int> left_view, right_view;
-//
-//  std::mt19937 e(seed);
-//  size_t ins = 0, skip = 0, total = 60000;
-//  for (size_t i = 0; i < total; i++) {
-//    unsigned int op = e() % 10;
-//    if (op > 2) {
-//      ins++;
-//      // insertion
-//      int l = e(), r = e();
-//      b.insert(l, r);
-//      left_view.insert({l, r});
-//      right_view.insert({r, l});
-//    } else {
-//      // erasure
-//      if (b.empty()) {
-//        skip++;
-//        continue;
-//      }
-//      auto it = b.end_left();
-//      while (it == b.end_left()) {
-//        it = b.lower_bound_left(e());
-//      }
-//      EXPECT_EQ(left_view.erase(*it), 1);
-//      EXPECT_EQ(right_view.erase(*it.flip()), 1);
-//      b.erase_left(it);
-//    }
-//    if (i % 100 == 0) {
-//      // check
-//      EXPECT_EQ(b.size(), left_view.size());
-//      EXPECT_EQ(b.size(), right_view.size());
-//      auto lit = b.begin_left();
-//      auto mlit = left_view.begin();
-//      for (; lit != b.end_left() && mlit != left_view.end(); lit++, mlit++) {
-//        EXPECT_EQ(*lit, mlit->first);
-//        EXPECT_EQ(*lit.flip(), mlit->second);
-//      }
-//    }
-//  }
-//  std::cout << "Comparing to maps stat:" << std::endl;
-//  std::cout << "Performed " << ins << " insertions and " << total - ins - skip
-//            << " erasures. " << skip << " skipped." << std::endl;
-//}
+
+TEST(bimap_randomized, compare_to_two_maps) {
+  std::cout << "Seed used for randomized cmp2map test is " << seed << std::endl;
+
+  bimap<int, int> b;
+  std::map<int, int> left_view, right_view;
+
+  std::mt19937 e(seed);
+  size_t ins = 0, skip = 0, total = 60000;
+  for (size_t i = 0; i < total; i++) {
+    unsigned int op = e() % 10;
+    if (op > 2) {
+      ins++;
+      // insertion
+      int l = e(), r = e();
+      b.insert(l, r);
+      left_view.insert({l, r});
+      right_view.insert({r, l});
+    } else {
+      // erasure
+      if (b.empty()) {
+        skip++;
+        continue;
+      }
+      auto it = b.end_left();
+      while (it == b.end_left()) {
+        it = b.lower_bound_left(e());
+      }
+      EXPECT_EQ(left_view.erase(*it), 1);
+      EXPECT_EQ(right_view.erase(*it.flip()), 1);
+      b.erase_left(it);
+    }
+    if (i % 100 == 0) {
+      // check
+      EXPECT_EQ(b.size(), left_view.size());
+      EXPECT_EQ(b.size(), right_view.size());
+      auto lit = b.begin_left();
+      auto mlit = left_view.begin();
+      for (; lit != b.end_left() && mlit != left_view.end(); lit++, mlit++) {
+        EXPECT_EQ(*lit, mlit->first);
+        EXPECT_EQ(*lit.flip(), mlit->second);
+      }
+    }
+  }
+  std::cout << "Comparing to maps stat:" << std::endl;
+  std::cout << "Performed " << ins << " insertions and " << total - ins - skip
+            << " erasures. " << skip << " skipped." << std::endl;
+}

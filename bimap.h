@@ -200,10 +200,11 @@ public:
         right_tree(std::move(compare_r_node(compare_right))) {}
 
   // Конструкторы от других и присваивания
-  bimap(bimap const& other) : left_tree(other.left_tree.get_compare()), right_tree(other.right_tree.get_compare()) {
-    for(auto it = other.begin_left(); it != other.end_left(); it++)
-    {
-        this->add(*it, *(it.flip()));
+  bimap(bimap const& other)
+      : left_tree(other.left_tree.get_compare()),
+        right_tree(other.right_tree.get_compare()) {
+    for (auto it = other.begin_left(); it != other.end_left(); it++) {
+      this->add(*it, *(it.flip()));
     }
   }
   bimap(bimap&& other) noexcept
@@ -211,12 +212,12 @@ public:
         right_tree(std::move(other.right_tree)) {}
 
   bimap& operator=(bimap const& other) {
-    if(this != &other)
+    if (this != &other)
       bimap(other).swap(*this);
     return *this;
   }
   bimap& operator=(bimap&& other) noexcept {
-    if(this != &other)
+    if (this != &other)
       bimap(std::move(other)).swap(*this);
     return *this;
   }
@@ -226,8 +227,8 @@ public:
   // (включая итераторы ссылающиеся на элементы следующие за последними).
   ~bimap() {
     for (auto it = begin_left(); it != end_left(); it++) {
-      delete &(*(it));
-      delete &(*(it.flip()));
+      delete (*(it.i_cur)).data;
+      delete (*(it.flip().i_cur)).data;
     }
   }
 
@@ -403,26 +404,22 @@ public:
     return *(r_iter.flip());
   }
 
-    // lower и upper bound'ы по каждой стороне
-    // Возвращают итераторы на соответствующие элементы
-    // Смотри std::lower_bound, std::upper_bound.
-    left_iterator lower_bound_left(const left_t &left) const
-    {
-      return {left_tree.find_next(l_node(&left)), this};
-    }
-    left_iterator upper_bound_left(const left_t &left) const
-    {
-      return {left_tree.find_next(l_node(&left)), this};
-    }
+  // lower и upper bound'ы по каждой стороне
+  // Возвращают итераторы на соответствующие элементы
+  // Смотри std::lower_bound, std::upper_bound.
+  left_iterator lower_bound_left(const left_t& left) const {
+    return {left_tree.find_next(l_node(&left)), this};
+  }
+  left_iterator upper_bound_left(const left_t& left) const {
+    return {left_tree.find_next(l_node(&left)), this};
+  }
 
-    right_iterator lower_bound_right(const right_t &right) const
-    {
-      return {right_tree.find_next(r_node(&right)), this};
-    }
-    right_iterator upper_bound_right(const right_t &right) const
-    {
-      return {right_tree.find_next(r_node(&right)), this};
-    }
+  right_iterator lower_bound_right(const right_t& right) const {
+    return {right_tree.find_next(r_node(&right)), this};
+  }
+  right_iterator upper_bound_right(const right_t& right) const {
+    return {right_tree.find_next(r_node(&right)), this};
+  }
 
   // Проверка на пустоту
   bool empty() const {
@@ -440,25 +437,23 @@ public:
 };
 
 // операторы сравнения
-template<typename L, typename R, typename cL, typename cR>
-bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
-{
-  if(a.size() != b.size())
+template <typename L, typename R, typename cL, typename cR>
+bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
+  if (a.size() != b.size())
     return false;
 
-  for(auto it_a = a.begin_left(), it_b = b.begin_left(); it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++)
-  {
-    if(*it_a != *it_b)
+  for (auto it_a = a.begin_left(), it_b = b.begin_left();
+       it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++) {
+    if (*it_a != *it_b)
       return false;
-    if(*it_a.flip() != *it_b.flip())
+    if (*it_a.flip() != *it_b.flip())
       return false;
   }
 
   return true;
 }
 
-template<typename L, typename R, typename cL, typename cR>
-bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b)
-{
+template <typename L, typename R, typename cL, typename cR>
+bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
   return !(a == b);
 }
