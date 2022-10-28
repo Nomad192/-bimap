@@ -179,15 +179,15 @@ class bimap {
         dynamic_cast<details::storage<Pair, TagPair> *>(&(*it_tree))));
     }
   };
+
+public:
   using left_iterator = base_iterator<Left, Right, l_comparator_t, r_comparator_t, details::left_tag, details::right_tag>;
   using right_iterator = base_iterator<Right, Left, r_comparator_t, l_comparator_t, details::right_tag, details::left_tag>;
 
-//  void swap(bimap& other) {
-//    left_tree.swap(other.left_tree);
-//    right_tree.swap(other.right_tree);
-//  }
-
-public:
+  void swap(bimap& other) {
+    left_tree.swap(other.left_tree);
+    right_tree.swap(other.right_tree);
+  }
 
   // Возващает итератор на минимальный по порядку left.
   left_iterator begin_left() const {
@@ -216,30 +216,33 @@ public:
 //          right_tree(&sentinel, std::move((compare_right)) {
   }
 
-//
-//  // Конструкторы от других и присваивания
-//  bimap(bimap const& other)
-//      : left_tree(other.left_tree.get_compare()),
-//        right_tree(other.right_tree.get_compare()) {
-//    for (auto it = other.begin_left(); it != other.end_left(); it++) {
-//      this->add(*it, *(it.flip()));
-//    }
-//  }
-//  bimap(bimap&& other) noexcept
-//      : left_tree(std::move(other.left_tree)),
-//        right_tree(std::move(other.right_tree)) {}
-//
-//  bimap& operator=(bimap const& other) {
-//    if (this != &other)
-//      bimap(other).swap(*this);
-//    return *this;
-//  }
-//  bimap& operator=(bimap&& other) noexcept {
-//    if (this != &other)
-//      bimap(std::move(other)).swap(*this);
-//    return *this;
-//  }
-//
+
+  // Конструкторы от других и присваивания
+  bimap(bimap const& other)
+      : left_tree(&sentinel, other.left_tree.get_compare()),
+        right_tree(&sentinel, other.right_tree.get_compare()) {
+    for (auto it = other.begin_left(); it != other.end_left(); it++) {
+      this->add(*it, *(it.flip()));
+    }
+  }
+  bimap(bimap&& other) noexcept
+      : left_tree(&sentinel, other.left_tree.get_compare()),
+        right_tree(&sentinel, other.right_tree.get_compare()) {
+    left_tree.swap(other.left_tree);
+    right_tree.swap(other.right_tree);
+  }
+
+  bimap& operator=(bimap const& other) {
+    if (this != &other)
+      bimap(other).swap(*this);
+    return *this;
+  }
+  bimap& operator=(bimap&& other) noexcept {
+    if (this != &other)
+      bimap(std::move(other)).swap(*this);
+    return *this;
+  }
+
   // Деструктор. Вызывается при удалении объектов bimap.
   // Инвалидирует все итераторы ссылающиеся на элементы этого bimap
   // (включая итераторы ссылающиеся на элементы следующие за последними).
@@ -301,6 +304,8 @@ public:
   left_iterator erase_left(left_iterator it) {
     auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
+    left_tree.remove(pointer);  ///for left_tree.size()
+    right_tree.remove(pointer); ///for right_tree.size()
 
     delete pointer;
     return it;
@@ -317,9 +322,11 @@ public:
     return false;
   }
 
-  right_iterator erase_right(left_iterator it) {
+  right_iterator erase_right(right_iterator it) {
     auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
+    left_tree.remove(pointer);  ///for left_tree.size()
+    right_tree.remove(pointer); ///for right_tree.size()
 
     delete pointer;
     return it;
@@ -374,32 +381,38 @@ public:
     return *(iter.flip());
   }
 
+
+  // Возвращает противоположный элемент по элементу
+  // Если элемента не существует, добавляет его в bimap и на противоположную
+  // сторону кладет дефолтный элемент, ссылку на который и возвращает
+  // Если дефолтный элемент уже лежит в противоположной паре - должен поменять
+  // соответствующий ему элемент на запрашиваемый (смотри тесты)
+  template <typename = std::enable_if<std::is_default_constructible_v<Right>>>
+  right_t const& at_left_or_default(left_t const& key) {
+    left_iterator l_iter = find_left(key);
+    if (l_iter == end_left()) {
+      right_t r_data{};
+      right_iterator r_iter = find_right(r_data);
+      if (r_iter == end_right()) {
+        return *(add(key, r_data).flip());
+      } else {
+
+        static_cast<details::key_t<Left, left_tag>&>(*(r_iter.flip().it_tree)).key = left_t(key);
+        //node.left = left_t(key);
 //
-//  // Возвращает противоположный элемент по элементу
-//  // Если элемента не существует, добавляет его в bimap и на противоположную
-//  // сторону кладет дефолтный элемент, ссылку на который и возвращает
-//  // Если дефолтный элемент уже лежит в противоположной паре - должен поменять
-//  // соответствующий ему элемент на запрашиваемый (смотри тесты)
-//  template <typename = std::enable_if<std::is_default_constructible_v<Right>>>
-//  right_t const& at_left_or_default(left_t const& key) {
-//    left_iterator l_iter(left_tree.find(l_node{&key}), this);
-//    if (l_iter == end_left()) {
-//      right_t r_data{};
-//      right_iterator r_iter(right_tree.find(r_node{&r_data}), this);
-//      if (r_iter == end_right()) {
-//        return *(add(key, r_data).flip());
-//      } else {
 //        left_t* l_data = new left_t(key);
 //        delete (*(r_iter.flip().i_cur)).data;
 //        (*(r_iter.flip().i_cur)).data = l_data;
-//        return *r_iter;
-//      }
-//    }
-//
-//    return *(l_iter.flip());
-//  }
-//  template <typename = std::enable_if<std::is_default_constructible_v<Left>>>
-//  left_t const& at_right_or_default(right_t const& key) {
+        return *r_iter;
+      }
+    }
+
+    return *(l_iter.flip());
+  }
+
+
+  template <typename = std::enable_if<std::is_default_constructible_v<Left>>>
+  left_t const& at_right_or_default(right_t const& key) {
 //    right_iterator r_iter(right_tree.find(r_node{&key}), this);
 //    if (r_iter == end_right()) {
 //      left_t l_data{};
@@ -416,59 +429,79 @@ public:
 //    }
 //
 //    return *(r_iter.flip());
-//  }
-//
-//  // lower и upper bound'ы по каждой стороне
-//  // Возвращают итераторы на соответствующие элементы
-//  // Смотри std::lower_bound, std::upper_bound.
-//  left_iterator lower_bound_left(const left_t& left) const {
-//    return {left_tree.find_next(l_node(&left)), this};
-//  }
-//  left_iterator upper_bound_left(const left_t& left) const {
-//    return {left_tree.find_next(l_node(&left)), this};
-//  }
-//
-//  right_iterator lower_bound_right(const right_t& right) const {
-//    return {right_tree.find_next(r_node(&right)), this};
-//  }
-//  right_iterator upper_bound_right(const right_t& right) const {
-//    return {right_tree.find_next(r_node(&right)), this};
-//  }
-//
-//  // Проверка на пустоту
-//  bool empty() const {
-//    assert(left_tree.empty() == right_tree.empty());
-//
-//    return left_tree.empty();
-//  }
-//
-//  // Возвращает размер бимапы (кол-во пар)
-//  std::size_t size() const {
-//    assert(left_tree.size() == right_tree.size());
-//
-//    return left_tree.size();
-//  }
-//};
-//
-//// операторы сравнения
-//template <typename L, typename R, typename cL, typename cR>
-//bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
-//  if (a.size() != b.size())
-//    return false;
-//
-//  for (auto it_a = a.begin_left(), it_b = b.begin_left();
-//       it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++) {
-//    if (*it_a != *it_b)
-//      return false;
-//    if (*it_a.flip() != *it_b.flip())
-//      return false;
-//  }
-//
-//  return true;
-//}
-//
-//template <typename L, typename R, typename cL, typename cR>
-//bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
-//  return !(a == b);
 
+
+    right_iterator r_iter = find_right(key);
+    if (r_iter == end_right()) {
+      left_t l_data{};
+      left_iterator l_iter = find_left(l_data);
+      if (l_iter == end_left()) {
+        return *(add(l_data, key));
+      } else {
+
+        static_cast<details::key_t<Right, right_tag>&>(*(l_iter.flip().it_tree)).key = right_t(key);
+        //node.left = left_t(key);
+        //
+        //        left_t* l_data = new left_t(key);
+        //        delete (*(r_iter.flip().i_cur)).data;
+        //        (*(r_iter.flip().i_cur)).data = l_data;
+        return *l_iter;
+      }
+    }
+
+    return *(r_iter.flip());
+  }
+
+  // lower и upper bound'ы по каждой стороне
+  // Возвращают итераторы на соответствующие элементы
+  // Смотри std::lower_bound, std::upper_bound.
+  left_iterator lower_bound_left(const left_t& left) const {
+    return left_iterator{left_tree.find_next(details::fake_key_t<Left, details::left_tag>{left})};
+  }
+  left_iterator upper_bound_left(const left_t& left) const {
+    return lower_bound_left(left);
+  }
+
+  right_iterator lower_bound_right(const right_t& right) const {
+    return right_iterator{right_tree.find_next(details::fake_key_t<Right, details::right_tag>{right})};
+  }
+  right_iterator upper_bound_right(const right_t& right) const {
+    return lower_bound_right(right);
+  }
+
+  // Проверка на пустоту
+  bool empty() const {
+    assert(left_tree.empty() == right_tree.empty());
+
+    return left_tree.empty();
+  }
+
+  // Возвращает размер бимапы (кол-во пар)
+  std::size_t size() const {
+    assert(left_tree.size() == right_tree.size());
+
+    return left_tree.size();
+  }
 };
+
+//// операторы сравнения
+template <typename L, typename R, typename cL, typename cR>
+bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
+  if (a.size() != b.size())
+    return false;
+
+  for (auto it_a = a.begin_left(), it_b = b.begin_left();
+       it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++) {
+    if (*it_a != *it_b)
+      return false;
+    if (*it_a.flip() != *it_b.flip())
+      return false;
+  }
+
+  return true;
+}
+
+template <typename L, typename R, typename cL, typename cR>
+bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
+  return !(a == b);
+}

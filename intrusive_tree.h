@@ -56,9 +56,9 @@ struct node {
       {
         node *next = min_node(right);
         next->unlink();
-        relink_parent(next);
+        //relink_parent(next);
         this->swap(*next);
-        next->repair_childs();
+        //next->repair_childs();
 
 
 //        node *next = right;
@@ -138,9 +138,17 @@ struct node {
 
   void swap(node& other)
   {
+    if(other.parent)
+      other.relink_parent(this);
+    if(parent)
+      relink_parent(&other);
+
     std::swap(parent, other.parent);
+
     std::swap(left, other.left);
     std::swap(right, other.right);
+    repair_childs();
+    other.repair_childs();
   }
 };
 
@@ -154,6 +162,7 @@ class intrusive_tree {
 
   node_t *sentinel;
   Compare comp;
+  size_t n_node = 0;
 //
 //  static inline node_t *make_p_node_t(node_base *p)
 //  {
@@ -162,6 +171,48 @@ class intrusive_tree {
 
 public:
   intrusive_tree(node_t *sentinel, Compare compare = Compare{}) : sentinel(sentinel), comp(std::move(compare)) {
+  }
+
+//  intrusive_tree(intrusive_tree const& other) : comp(other.comp) {
+//    for (auto it = other.begin(); it != other.end(); it++) {
+//      this->add(*it);
+//    }
+//  }
+
+//  intrusive_tree(intrusive_tree&& other) : comp(other.comp) {
+//    this->swap(other);
+//  }
+
+  intrusive_tree& operator=(intrusive_tree const& other) {
+    if (this != &other)
+      Tree(other).swap(*this);
+    return *this;
+  }
+
+  intrusive_tree& operator=(intrusive_tree&& other) {
+    if (this != &other)
+      Tree(std::move(other)).swap(*this);
+    return *this;
+  }
+
+  Compare get_compare() const {
+    return this->comp;
+  }
+
+  void swap(intrusive_tree& other) {
+    std::swap(this->n_node, other.n_node);
+    std::swap(this->comp, other.comp);
+    sentinel->swap(*other.sentinel);
+  }
+
+  bool empty() const {
+    assert((sentinel->left == nullptr) == (n_node == 0));
+    return sentinel->left == nullptr;
+  }
+
+  size_t size() const
+  {
+    return n_node;
   }
 
 private:
@@ -354,17 +405,25 @@ public:
     node_t *cur = find(data, res);
     if(res == THERE_IS) return end();
 
+    static_cast<node_t*>(&data)->parent = cur;
+    n_node++;
     if      (res == ADD_LEFT)
     {
       cur->left   = &data;
-      static_cast<node_t*>(&data)->parent = cur;
       return (cur->left);
     }
     else {//if (res == ADD_RIGHT)  {
       cur->right  = &data;
-      static_cast<node_t*>(&data)->parent = cur;
       return (cur->right);
     }
+  }
+
+  iterator remove(iterator it)
+  {
+    iterator it_next(it.cur->next());
+    it.cur->unlink();
+    n_node--;
+    return it_next;
   }
 
   iterator remove(T &data)
@@ -373,13 +432,6 @@ public:
     node_t *cur = find(data, res);
     if(res == THERE_IS) return end();
     return remove(iterator(cur));
-  }
-
-  iterator remove(iterator it)
-  {
-    iterator it_next(it.cur->next());
-    it.cur->unlink();
-    return it_next;
   }
 };
 } // namespace intrusive
