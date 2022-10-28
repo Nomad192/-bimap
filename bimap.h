@@ -248,7 +248,7 @@ public:
     auto it = begin_left();
 
 
-    while ( (it = erase_left(it)) != end_left() ) {}
+    while ( it != end_left() ) {it = erase_left(it);}
   }
 
 private:
@@ -300,8 +300,17 @@ public:
   // Пусть it ссылается на некоторый элемент e.
   // erase инвалидирует все итераторы ссылающиеся на e и на элемент парный к e.
   left_iterator erase_left(left_iterator it) {
-    left_iterator next_it(left_tree.remove(it.it_tree));
-    right_tree.remove(it.flip().it_tree);
+//    auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
+//    left_iterator next_it(left_tree.remove(it.it_tree));
+//    right_tree.remove(it.flip().it_tree);
+//    delete pointer;
+//    return {next_it};
+
+    auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
+    left_iterator next_it = it;
+    next_it++;
+
+    delete pointer;
     return {next_it};
   }
 

@@ -21,7 +21,7 @@ struct node {
     return parent->right == this;
   }
 
-  inline void unlink_parent(node* set)
+  inline void relink_parent(node* set)
   {
     if (is_right())
       parent->right = set;
@@ -31,32 +31,61 @@ struct node {
       set->parent = parent;
   }
 
+  inline void repair_childs()
+  {
+    if(left)
+      left->parent = this;
+    if(right)
+      right->parent = this;
+  }
+
   void unlink()
   {
     if (parent) {
       if(right != nullptr && left == nullptr)
       {
-        unlink_parent(right);
-        //parent->set_child(this, right);
+        relink_parent(right);
         right = nullptr;
       }
       else if(right == nullptr && left != nullptr)
       {
-        unlink_parent(left);
-        //parent->set_child(this, left);
+        relink_parent(left);
         left = nullptr;
       }
       else if(right != nullptr && left != nullptr)
       {
         node *next = min_node(right);
         next->unlink();
+        relink_parent(next);
         this->swap(*next);
-        right = nullptr;
-        left = nullptr;
+        next->repair_childs();
+
+
+//        node *next = right;
+//
+//        while (next->left)
+//          next = next->left;
+//
+//        next->unlink_parent(next->right);
+//        next->right = nullptr;
+//        next->parent = nullptr;
+//
+//        next->parent = parent;
+//        next->right = right;
+//        next->left = left;
+//
+//        unlink_parent(next);
+//
+//        if(next->left)
+//          next->left->parent = next;
+//        if(next->right)
+//          next->right->parent = next;
+//        right = nullptr;
+//        left = nullptr;
       }
       else
       {
-        unlink_parent(nullptr);
+        relink_parent(nullptr);
       }
       parent = nullptr;
     }
