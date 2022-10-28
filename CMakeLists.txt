@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(GTest REQUIRED)
 
-add_executable(tests tests.cpp bimap.h intrusive_tree.cpp intrusive_tree.h)
+add_executable(tests tests.cpp bimap.h intrusive_tree.cpp intrusive_tree.h bimap_details.h intrusive_node.h)
 
 if (NOT MSVC)
   target_compile_options(tests PRIVATE -Wall -Wextra -Wshadow=compatible-local -Wno-sign-compare -pedantic)
