@@ -15,6 +15,7 @@ struct Node {
 
   bool is_right();
   void unlink();
+  void unlink_child();
 
   static Node* min_node(Node* cur);
   static Node* max_node(Node* cur);
@@ -228,7 +229,7 @@ private:
 
 public:
   DNode<T, Compare>* root() const {
-    // assert(left == rght);
+    //assert(left == rght);
     left = rght;
     return static_cast<DNode<T, Compare>*>(rght);
   }
