@@ -34,7 +34,7 @@ struct fake_key_t : public storage<Key, Tag> {
   Key const*key;
 
   explicit fake_key_t(Key const&key) : key(&key) {}
-  explicit fake_key_t(nullptr_t) : key(nullptr) {}
+  explicit fake_key_t(std::nullptr_t) : key(nullptr) {}
 
   Key const&get() const
   {
