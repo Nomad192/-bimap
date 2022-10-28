@@ -207,6 +207,11 @@ private:
       return cur != other.cur;
     }
 
+    node_t *get() const
+    {
+      return cur;
+    }
+
 //    bool is_end() const {
 //      return cur->parent == nullptr;
 //    }

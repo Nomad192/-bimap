@@ -5,7 +5,7 @@
 
 #include "intrusive_tree.h"
 
-namespace details{
+namespace details {
 
 struct left_tag{};
 struct right_tag{};
@@ -23,8 +23,6 @@ struct key_t : public storage<Key, Tag> {
 
   explicit key_t(Key &&key) : key(std::move(key)) {}
 
-  //explicit operator const Key&() const { return key; }
-
   Key const&get() const
   {
     return key;
@@ -33,19 +31,15 @@ struct key_t : public storage<Key, Tag> {
 
 template <typename Key, typename Tag>
 struct fake_key_t : public storage<Key, Tag> {
-  Key const&key;
+  Key const*key;
 
-  explicit fake_key_t(Key const&key) : key(key) {}
+  explicit fake_key_t(Key const&key) : key(&key) {}
+  explicit fake_key_t(nullptr_t) : key(nullptr) {}
 
   Key const&get() const
   {
-    return key;
+    return *key;
   }
-};
-
-template <typename Left, typename Right>
-struct node_t : public key_t<Left, left_tag>, public key_t<Right, right_tag> {
-  node_t(Left &&left, Right &&right) : key_t<Left, left_tag>(std::move(left)), key_t<Right, right_tag>(std::move(right)) {}
 };
 
 template <typename Base, typename Comparator, typename Tag>
@@ -58,17 +52,17 @@ struct comparator_t : public Comparator {
 };
 
 template <typename Left, typename Right>
-struct sentinel_t : public intrusive::node<Left, left_tag>, public intrusive::node<Right, right_tag> {};
+struct node_t : public key_t<Left, left_tag>, public key_t<Right, right_tag> {
+  node_t(Left &&left, Right &&right) : key_t<Left, left_tag>(std::move(left)), key_t<Right, right_tag>(std::move(right)) {}
+};
 
-//template <typename Left, typename Right, typename CompareLeft>
-//struct CompareNode {
-//  CompareLeft comp;
-//  explicit CompareNode(decltype(comp) comp) : comp(comp) {}
-//  bool operator()(const storage<Left, Right>& a,
-//                  const storage<Left, Right>& b) const {
-//    return comp(a.get(), b.get());
-//  }
-//};
+//template <typename Left, typename Right>
+//struct sentinel_t : public intrusive::node<Left, left_tag>, public intrusive::node<Right, right_tag> {};
+
+template <typename Left, typename Right>
+struct sentinel_t : public fake_key_t<Left, left_tag>, public fake_key_t<Right, right_tag> {
+  sentinel_t() : fake_key_t<Left, left_tag>(nullptr), fake_key_t<Right, right_tag>(nullptr) {}
+};
 
 } //namespace details
 
@@ -173,11 +167,16 @@ class bimap {
     // end_right().flip() возвращает end_left().
     // flip() невалидного итератора неопределен.
     base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase> flip() const {
-      details::storage<Base, TagBase> *b_st_node = &(*it_tree);
-      auto *n_node = static_cast<node_t *>(b_st_node);
-      auto *p_st_node = static_cast<details::storage<Pair, TagPair> *>(n_node);
-      auto *int_n_node = static_cast<intrusive::node<Pair, TagPair> *>(p_st_node);
-      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, Pair, ComparePair, TagPair>::iterator(int_n_node));
+//      details::storage<Base, TagBase> *b_st_node = &(*it_tree);
+//      auto *n_node = static_cast<node_t *>(b_st_node);
+//      auto *p_st_node = static_cast<details::storage<Pair, TagPair> *>(n_node);
+//      auto *int_n_node = static_cast<intrusive::node<Pair, TagPair> *>(p_st_node);
+//      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, Pair, ComparePair, TagPair>::iterator(int_n_node));
+
+
+      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(
+    typename intrusive_tree<Pair, Pair, ComparePair, TagPair>::iterator(
+        dynamic_cast<details::storage<Pair, TagPair> *>(&(*it_tree))));
     }
   };
   using left_iterator = base_iterator<Left, Right, l_comparator_t, r_comparator_t, details::left_tag, details::right_tag>;
@@ -300,90 +299,80 @@ public:
   // Пусть it ссылается на некоторый элемент e.
   // erase инвалидирует все итераторы ссылающиеся на e и на элемент парный к e.
   left_iterator erase_left(left_iterator it) {
-//    auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
-//    left_iterator next_it(left_tree.remove(it.it_tree));
-//    right_tree.remove(it.flip().it_tree);
-//    delete pointer;
-//    return {next_it};
-
     auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
-    left_iterator next_it = it;
-    next_it++;
+    it++;
 
     delete pointer;
-    return {next_it};
+    return it;
   }
 
-//  // Аналогично erase, но по ключу, удаляет элемент если он присутствует, иначе
-//  // не делает ничего Возвращает была ли пара удалена
-//  bool erase_left(left_t const& left) {
-//    left_iterator l_iter = find_left(left);
-//    if (l_iter != end_left()) {
-//      erase_left(l_iter);
-//      return true;
-//    }
-//    return false;
-//  }
-//
-//  right_iterator erase_right(right_iterator it) {
-//    typename Tree<l_node, compare_l_node>::iterator l_it = it.flip().i_cur;
-//    delete (*l_it).data;
-//    delete (*(it.i_cur)).data;
-//    typename Tree<r_node, compare_r_node>::iterator next_it =
-//        right_tree.remove(it.i_cur);
-//    left_tree.remove(l_it);
-//    return {next_it, this};
-//  }
-//  bool erase_right(right_t const& right) {
-//    right_iterator r_iter = find_right(right);
-//    if (r_iter != end_right()) {
-//      erase_right(r_iter);
-//      return true;
-//    }
-//    return false;
-//  }
-//
-//  // erase от ренжа, удаляет [first, last), возвращает итератор на последний
-//  // элемент за удаленной последовательностью
-//  left_iterator erase_left(left_iterator first, left_iterator last) {
-//    while (first != last)
-//      first = erase_left(first);
-//
-//    return last;
-//  }
-//  right_iterator erase_right(right_iterator first, right_iterator last) {
-//    while (first != last)
-//      first = erase_right(first);
-//
-//    return last;
-//  }
-//
-//  // Возвращает итератор по элементу. Если не найден - соответствующий end()
-//  left_iterator find_left(left_t const& left) const {
-//    return {left_tree.find(l_node{&left}), this};
-//  }
-//  right_iterator find_right(right_t const& right) const {
-//    return {right_tree.find(r_node{&right}), this};
-//  }
+  // Аналогично erase, но по ключу, удаляет элемент если он присутствует, иначе
+  // не делает ничего Возвращает была ли пара удалена
+  bool erase_left(left_t const& left) {
+    left_iterator l_iter = find_left(left);
+    if (l_iter != end_left()) {
+      erase_left(l_iter);
+      return true;
+    }
+    return false;
+  }
+
+  right_iterator erase_right(left_iterator it) {
+    auto *pointer = static_cast<node_t*>(&(*(it.it_tree)));
+    it++;
+
+    delete pointer;
+    return it;
+  }
+
+  bool erase_right(right_t const& right) {
+    right_iterator r_iter = find_right(right);
+    if (r_iter != end_right()) {
+      erase_right(r_iter);
+      return true;
+    }
+    return false;
+  }
+
+  // erase от ренжа, удаляет [first, last), возвращает итератор на последний
+  // элемент за удаленной последовательностью
+  left_iterator erase_left(left_iterator first, left_iterator last) {
+    while (first != last)
+      first = erase_left(first);
+
+    return last;
+  }
+  right_iterator erase_right(right_iterator first, right_iterator last) {
+    while (first != last)
+      first = erase_right(first);
+
+    return last;
+  }
+
+  // Возвращает итератор по элементу. Если не найден - соответствующий end()
+  left_iterator find_left(left_t const& left) const {
+    return left_iterator(left_tree.find(details::fake_key_t<Left, details::left_tag>{left}));
+  }
+  right_iterator find_right(right_t const& right) const {
+    return right_iterator(right_tree.find(details::fake_key_t<Right, details::right_tag>{right}));
+  }
 
   // Возвращает противоположный элемент по элементу
   // Если элемента не существует -- бросает std::out_of_range
   right_t const& at_left(left_t const& key) const {
 
-    left_iterator iter(left_tree.find(details::fake_key_t<Left, details::left_tag>{key}));
+    left_iterator iter = find_left(key);
     if (iter == end_left())
       throw std::out_of_range("cannot find el");
     return *(iter.flip());
   }
   left_t const& at_right(right_t const& key) const {
 
-    right_iterator iter(right_tree.find(details::fake_key_t<Right, right_tag>{key}));
+    right_iterator iter = find_right(key);
     if (iter == end_right())
       throw std::out_of_range("cannot find el");
     return *(iter.flip());
   }
-
-
 
 //
 //  // Возвращает противоположный элемент по элементу
