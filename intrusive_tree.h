@@ -5,7 +5,7 @@ namespace intrusive {
 
 struct default_tag;
 
-template <typename Tag = default_tag>
+template <typename Key, typename Tag = default_tag>
 struct node {
   node* parent = nullptr;
   node* left = nullptr;
@@ -27,7 +27,8 @@ struct node {
       parent->right = set;
     else
       parent->left = set;
-    set->parent = parent;
+    if(set)
+      set->parent = parent;
   }
 
   void unlink()
@@ -47,10 +48,11 @@ struct node {
       }
       else if(right != nullptr && left != nullptr)
       {
-        node *next = right;
-        next = min_node(next);
+        node *next = min_node(right);
         next->unlink();
         this->swap(*next);
+        right = nullptr;
+        left = nullptr;
       }
       else
       {
@@ -116,9 +118,9 @@ struct node {
 //template <typename Tag = default_tag>
 //struct node : public node_base {};
 
-template <typename T, typename Compare, typename Tag = default_tag>
+template <typename T, typename Key, typename Compare, typename Tag = default_tag> ////11111111
 class intrusive_tree {
-  using node_t = node<Tag>;
+  using node_t = node<Key, Tag>;
   static_assert(std::is_convertible_v<T *, node_t *>, "invalid value type");
 
   node_t *sentinel;
@@ -139,19 +141,19 @@ private:
   private:
     node_t* cur = nullptr;
 
-    template <typename tT, typename tCompare, typename tTag>
+    template <typename tT, typename tKey, typename tCompare, typename tTag>
     friend class intrusive_tree;
 
-    template <typename tT, typename tCompare, typename tTag>
-    static inorder_iterator begin_iter(const intrusive_tree<tT, tCompare, tTag>* tree) {
+    template <typename tT, typename tKey, typename tCompare, typename tTag>
+    static inorder_iterator begin_iter(const intrusive_tree<tT, tKey, tCompare, tTag>* tree) {
       //if (tree->sentinel->left)
         return (node_t::min_node(tree->sentinel)); ///!!!!!!!!!!!!!!!!!!!!
 
       //return end_iter(tree);
     }
 
-    template <typename tT, typename tCompare, typename tTag>
-    static inorder_iterator end_iter(const intrusive_tree<tT, tCompare, tTag>* tree) {
+    template <typename tT, typename tKey, typename tCompare, typename tTag>
+    static inorder_iterator end_iter(const intrusive_tree<tT, tKey, tCompare, tTag>* tree) {
       return (tree->sentinel);
     }
 
@@ -215,11 +217,11 @@ public:
   using const_iterator = inorder_iterator<const T>;
 
   iterator begin() const {
-    return iterator::template begin_iter<T, Compare, Tag>(this);
+    return iterator::template begin_iter<T, Key, Compare, Tag>(this);
   }
 
   iterator end() const {
-    return iterator::template end_iter<T, Compare, Tag>(this);
+    return iterator::template end_iter<T, Key, Compare, Tag>(this);
   }
 
 //  const_iterator begin() const {
@@ -230,15 +232,25 @@ public:
 //    return const_iterator::end_iter(this);
 //  }
 
-  inline static T* make_p(node_t *p)
+  inline static const T* make_p(node_t *p)
   {
     return static_cast<T *>(p);
   }
 
-  inline static T& make_r(node_t &p)
+//  inline static const T* make_p(const node_t *p)
+//  {
+//    return static_cast<T *>(p);
+//  }
+
+  inline static const T& make_r(node_t &p)
   {
     return static_cast<T &>(p);
   }
+
+//  inline static const T& make_r(const node_t &p)
+//  {
+//    return static_cast<T &>(p);
+//  }
 
 private:
   enum find_result
@@ -247,13 +259,13 @@ private:
     ADD_RIGHT,
     ADD_LEFT
   };
-  node_t *find(T &data, find_result &res)
+  node_t *find(const T& data, find_result &res) const
   {
+    res = ADD_LEFT;
     if(sentinel->left == nullptr)
       return sentinel;
 
     node_t *cur = sentinel->left;
-    res = THERE_IS;
     while(cur != nullptr)
     {
       if(comp(make_r(*cur), data))
@@ -275,7 +287,11 @@ private:
         }
       }
       else
+      {
+        res = THERE_IS;
         break;
+      }
+
 
     }
     return cur;
@@ -300,14 +316,21 @@ public:
   }
 
   iterator insert(T &data) {
-    find_result res = THERE_IS;
+    find_result res = ADD_LEFT;
     node_t *cur = find(data, res);
     if(res == THERE_IS) return end();
 
-    if      (res == ADD_LEFT)   cur->left   = &data;
-    else if (res == ADD_RIGHT)  cur->right  = &data;
-
-    return (cur);
+    if      (res == ADD_LEFT)
+    {
+      cur->left   = &data;
+      static_cast<node_t*>(&data)->parent = cur;
+      return (cur->left);
+    }
+    else {//if (res == ADD_RIGHT)  {
+      cur->right  = &data;
+      static_cast<node_t*>(&data)->parent = cur;
+      return (cur->right);
+    }
   }
 
   iterator remove(T &data)

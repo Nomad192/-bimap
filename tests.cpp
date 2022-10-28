@@ -12,13 +12,13 @@ TEST(bimap, leak_check) {
     b.insert(e(), e());
   }
 }
-//
-//TEST(bimap, simple) {
-//  bimap<int, int> b;
-//  b.insert(4, 4);
-//  EXPECT_EQ(b.at_right(4), b.at_left(4));
-//}
-//
+
+TEST(bimap, simple) {
+  bimap<int, int> b;
+  b.insert(4, 4);
+  EXPECT_EQ(b.at_right(4), b.at_left(4));
+}
+
 //TEST(bimap, custom_comparator) {
 //  bimap<int, int, std::greater<>> b;
 //  b.insert(3, 4);
