@@ -349,20 +349,22 @@ public:
   // lower и upper bound'ы по каждой стороне
   // Возвращают итераторы на соответствующие элементы
   // Смотри std::lower_bound, std::upper_bound.
-  left_iterator lower_bound_left(const left_t& left) const {
-    return left_iterator{left_tree.find_next(
-        details::fake_key_t<Left, details::left_tag>{left})};
+  left_iterator lower_bound_left(const left_t& key) const {
+    return left_iterator{left_tree.lower_bound(
+        details::fake_key_t<Left, details::left_tag>{key})};
   }
-  left_iterator upper_bound_left(const left_t& left) const {
-    return lower_bound_left(left);
+  left_iterator upper_bound_left(const left_t& key) const {
+    return left_iterator{left_tree.upper_bound(
+        details::fake_key_t<Left, details::left_tag>{key})};
   }
 
-  right_iterator lower_bound_right(const right_t& right) const {
-    return right_iterator{right_tree.find_next(
-        details::fake_key_t<Right, details::right_tag>{right})};
+  right_iterator lower_bound_right(const right_t& key) const {
+    return right_iterator{right_tree.lower_bound(
+        details::fake_key_t<Right, details::right_tag>{key})};
   }
-  right_iterator upper_bound_right(const right_t& right) const {
-    return lower_bound_right(right);
+  right_iterator upper_bound_right(const right_t& key) const {
+    return right_iterator{right_tree.upper_bound(
+        details::fake_key_t<Right, details::right_tag>{key})};
   }
 
   // Проверка на пустоту

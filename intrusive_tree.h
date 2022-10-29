@@ -188,10 +188,18 @@ public:
     return end();
   }
 
-  iterator find_next(const T& x) const {
+  iterator lower_bound(const T& x) const {
     find_result res = THERE_IS;
     node_t* cur = find(x, res);
     if (res == THERE_IS || res == ADD_LEFT)
+      return (cur);
+    return (cur->next());
+  }
+
+  iterator upper_bound(const T& x) const {
+    find_result res = THERE_IS;
+    node_t* cur = find(x, res);
+    if (res == ADD_LEFT)
       return (cur);
     return (cur->next());
   }
