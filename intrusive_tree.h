@@ -6,8 +6,7 @@
 
 namespace intrusive {
 
-template <typename T, typename Compare,
-          typename Tag = default_tag>
+template <typename T, typename Compare, typename Tag = default_tag>
 class intrusive_tree : public Compare {
   using node_t = node<Tag>;
   static_assert(std::is_convertible_v<T*, node_t*>, "invalid value type");
@@ -19,8 +18,8 @@ public:
   explicit intrusive_tree(node_t* sentinel, Compare compare = Compare{})
       : sentinel(sentinel), Compare(std::move(compare)) {}
 
-    intrusive_tree(intrusive_tree const& other) = delete;
-    intrusive_tree(intrusive_tree&& other) = delete;
+  intrusive_tree(intrusive_tree const& other) = delete;
+  intrusive_tree(intrusive_tree&& other) = delete;
 
   intrusive_tree& operator=(intrusive_tree const& other) {
     if (this != &other)
@@ -71,7 +70,7 @@ private:
     }
 
   public:
-    inorder_iterator(decltype(cur) cur) : cur(cur) {}
+    inorder_iterator(node_t* cur) : cur(cur) {}
 
     using difference_type = ptrdiff_t;
     using value_type = iT;

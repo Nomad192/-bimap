@@ -33,7 +33,9 @@ class bimap {
   struct base_iterator {
     typename intrusive_tree<Base, CompareBase, TagBase>::iterator it_tree;
 
-    explicit base_iterator(decltype(it_tree) it_tree) : it_tree(it_tree) {}
+    explicit base_iterator(
+        typename intrusive_tree<Base, CompareBase, TagBase>::iterator it_tree)
+        : it_tree(it_tree) {}
 
     using difference_type = ptrdiff_t;
     using value_type = Base;
@@ -135,8 +137,7 @@ public:
       : left_tree(&sentinel,
                   std::move(l_comparator_t(std::move(compare_left)))),
         right_tree(&sentinel,
-                   std::move(r_comparator_t(std::move(compare_right)))) {
-  }
+                   std::move(r_comparator_t(std::move(compare_right)))) {}
 
   // Конструкторы от других и присваивания
   bimap(bimap const& other)
@@ -176,13 +177,14 @@ public:
   }
 
 private:
-
   template <typename lpf = left_t, typename rpf = right_t>
-  left_iterator add(lpf &&left, rpf &&right) {
-    if(left_tree.find(details::fake_key_t<Left, left_tag>(left)) == left_tree.end()
-      && right_tree.find(details::fake_key_t<Right, right_tag>(right)) == right_tree.end())
-    {
-      auto* new_node = new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
+  left_iterator add(lpf&& left, rpf&& right) {
+    if (left_tree.find(details::fake_key_t<Left, left_tag>(left)) ==
+            left_tree.end() &&
+        right_tree.find(details::fake_key_t<Right, right_tag>(right)) ==
+            right_tree.end()) {
+      auto* new_node =
+          new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
       typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
       right_tree.insert(*new_node);
 

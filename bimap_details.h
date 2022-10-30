@@ -39,7 +39,7 @@ struct fake_key_t : public storage<Key, Tag> {
 template <typename Base, typename Comparator, typename Tag>
 struct comparator_t {
   Comparator comp;
-  explicit comparator_t(decltype(comp) comp) : comp(comp) {}
+  explicit comparator_t(Comparator comp) : comp(comp) {}
   bool operator()(const storage<Base, Tag>& a,
                   const storage<Base, Tag>& b) const {
     return comp(a.get(), b.get());
