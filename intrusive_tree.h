@@ -133,11 +133,11 @@ public:
     return iterator::template end_iter<T, Compare, Tag>(this);
   }
 
-  inline static const T* make_p(node_t* p) {
+  static const T* make_p(node_t* p) {
     return static_cast<T*>(p);
   }
 
-  inline static const T& make_r(node_t& p) {
+  static const T& make_r(node_t& p) {
     return static_cast<T&>(p);
   }
 

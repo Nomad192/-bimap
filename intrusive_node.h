@@ -16,11 +16,11 @@ struct node {
     unlink();
   }
 
-  inline bool is_right() {
+  bool is_right() {
     return parent->right == this;
   }
 
-  inline void relink_parent(node* set) {
+  void relink_parent(node* set) {
     if (is_right())
       parent->right = set;
     else
@@ -29,7 +29,7 @@ struct node {
       set->parent = parent;
   }
 
-  inline void repair_childs() {
+  void repair_childs() {
     if (left)
       left->parent = this;
     if (right)
