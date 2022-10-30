@@ -142,7 +142,7 @@ public:
   }
 
 private:
-  enum find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
+  enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
   node_t* find(const T& data, find_result& res) const {
     res = ADD_LEFT;
     if (sentinel->left == nullptr)
