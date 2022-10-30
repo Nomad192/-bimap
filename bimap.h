@@ -27,6 +27,7 @@ class bimap {
   details::sentinel_t<Left, Right> sentinel; /// only this order, sentinel first
   l_tree_t left_tree;
   r_tree_t right_tree;
+  size_t n_node = 0;
 
   template <typename Base, typename Pair, typename CompareBase,
             typename ComparePair, typename TagBase, typename TagPair>
@@ -111,6 +112,7 @@ public:
   void swap(bimap& other) {
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
+    std::swap(n_node, other.n_node);
   }
 
   // Возващает итератор на минимальный по порядку left.
@@ -142,14 +144,17 @@ public:
   // Конструкторы от других и присваивания
   bimap(bimap const& other)
       : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
-        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)) {
+        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree))
+  ///,n_node(0) - because insert
+  {
     for (auto it = other.begin_left(); it != other.end_left(); it++) {
       this->insert(*it, *(it.flip()));
     }
   }
   bimap(bimap&& other) noexcept
       : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
-        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)) {
+        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)),
+        n_node(other.n_node) {
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
   }
@@ -188,6 +193,8 @@ private:
       typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
       right_tree.insert(*new_node);
 
+      n_node++;
+
       return left_iterator(iter_left_tree);
     }
     return end_left();
@@ -218,8 +225,9 @@ public:
   left_iterator erase_left(left_iterator it) {
     auto* pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
-    left_tree.remove(pointer);  /// for left_tree.size()
-    right_tree.remove(pointer); /// for right_tree.size()
+    n_node--;
+    //    left_tree.remove(pointer);  /// for left_tree.size()
+    //    right_tree.remove(pointer); /// for right_tree.size()
 
     delete pointer;
     return it;
@@ -239,8 +247,9 @@ public:
   right_iterator erase_right(right_iterator it) {
     auto* pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
-    left_tree.remove(pointer);  /// for left_tree.size()
-    right_tree.remove(pointer); /// for right_tree.size()
+    n_node--;
+    //    left_tree.remove(pointer);  /// for left_tree.size()
+    //    right_tree.remove(pointer); /// for right_tree.size()
 
     delete pointer;
     return it;
@@ -364,15 +373,16 @@ public:
   // Проверка на пустоту
   bool empty() const {
     assert(left_tree.empty() == right_tree.empty());
+    assert(left_tree.empty() == (n_node == 0));
 
-    return left_tree.empty();
+    return n_node == 0;
   }
 
   // Возвращает размер бимапы (кол-во пар)
   std::size_t size() const {
-    assert(left_tree.size() == right_tree.size());
+    // assert(left_tree.size() == right_tree.size());
 
-    return left_tree.size();
+    return n_node; // left_tree.size();
   }
 };
 
@@ -397,3 +407,4 @@ template <typename L, typename R, typename cL, typename cR>
 bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
   return !(a == b);
 }
+//////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
