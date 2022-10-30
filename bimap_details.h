@@ -37,7 +37,7 @@ struct fake_key_t : public storage<Key, Tag> {
 };
 
 template <typename Base, typename Comparator, typename Tag>
-struct comparator_t : public Comparator {
+struct comparator_t {
   Comparator comp;
   explicit comparator_t(decltype(comp) comp) : comp(comp) {}
   bool operator()(const storage<Base, Tag>& a,
@@ -48,7 +48,7 @@ struct comparator_t : public Comparator {
 
 template <typename Left, typename Right>
 struct node_t : public key_t<Left, left_tag>, public key_t<Right, right_tag> {
-  node_t(Left&& left, Right&& right)
+  node_t(Left left, Right right)
       : key_t<Left, left_tag>(std::move(left)), key_t<Right, right_tag>(
                                                     std::move(right)) {}
 };

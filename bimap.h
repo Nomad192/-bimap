@@ -140,15 +140,15 @@ public:
 
   // Конструкторы от других и присваивания
   bimap(bimap const& other)
-      : left_tree(&sentinel, other.left_tree.get_compare()),
-        right_tree(&sentinel, other.right_tree.get_compare()) {
+      : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
+        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)) {
     for (auto it = other.begin_left(); it != other.end_left(); it++) {
-      this->add(*it, *(it.flip()));
+      this->insert(*it, *(it.flip()));
     }
   }
   bimap(bimap&& other) noexcept
-      : left_tree(&sentinel, other.left_tree.get_compare()),
-        right_tree(&sentinel, other.right_tree.get_compare()) {
+      : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
+        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)) {
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
   }
@@ -176,26 +176,19 @@ public:
   }
 
 private:
-  left_iterator add(Left left, Right right) {
 
-    auto* new_node = new node_t{std::move(left), std::move(right)};
+  template <typename lpf = left_t, typename rpf = right_t>
+  left_iterator add(lpf &&left, rpf &&right) {
+    if(left_tree.find(details::fake_key_t<Left, left_tag>(left)) == left_tree.end()
+      && right_tree.find(details::fake_key_t<Right, right_tag>(right)) == right_tree.end())
+    {
+      auto* new_node = new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
+      typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
+      right_tree.insert(*new_node);
 
-    typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
-
-    if (iter_left_tree == left_tree.end()) {
-      delete new_node;
-      return end_left();
+      return left_iterator(iter_left_tree);
     }
-
-    typename r_tree_t ::iterator iter_right_tree = right_tree.insert(*new_node);
-
-    if (iter_right_tree == right_tree.end()) {
-      left_tree.remove(iter_left_tree);
-      delete new_node;
-      return end_left();
-    }
-
-    return left_iterator(iter_left_tree);
+    return end_left();
   }
 
 public:
@@ -205,7 +198,6 @@ public:
   left_iterator insert(Left const& left, Right const& right) {
     return add(left, right);
   }
-
   left_iterator insert(Left const& left, Right&& right) {
     return add(left, std::move(right));
   }
@@ -315,7 +307,7 @@ public:
       right_t r_data{};
       right_iterator r_iter = find_right(r_data);
       if (r_iter == end_right()) {
-        return *(add(key, r_data).flip());
+        return *(insert(key, r_data).flip());
       } else {
 
         static_cast<details::key_t<Left, left_tag>&>(*(r_iter.flip().it_tree))
@@ -334,7 +326,7 @@ public:
       left_t l_data{};
       left_iterator l_iter = find_left(l_data);
       if (l_iter == end_left()) {
-        return *(add(l_data, key));
+        return *(insert(l_data, key));
       } else {
 
         static_cast<details::key_t<Right, right_tag>&>(*(l_iter.flip().it_tree))

@@ -8,17 +8,16 @@ namespace intrusive {
 
 template <typename T, typename Compare,
           typename Tag = default_tag>
-class intrusive_tree {
+class intrusive_tree : public Compare {
   using node_t = node<Tag>;
   static_assert(std::is_convertible_v<T*, node_t*>, "invalid value type");
 
   node_t* sentinel;
-  Compare comp;
   size_t n_node = 0;
 
 public:
   explicit intrusive_tree(node_t* sentinel, Compare compare = Compare{})
-      : sentinel(sentinel), comp(std::move(compare)) {}
+      : sentinel(sentinel), Compare(std::move(compare)) {}
 
     intrusive_tree(intrusive_tree const& other) = delete;
     intrusive_tree(intrusive_tree&& other) = delete;
@@ -33,10 +32,6 @@ public:
     if (this != &other)
       Tree(std::move(other)).swap(*this);
     return *this;
-  }
-
-  Compare get_compare() const {
-    return this->comp;
   }
 
   void swap(intrusive_tree& other) {
@@ -156,14 +151,14 @@ private:
 
     node_t* cur = sentinel->left;
     while (cur != nullptr) {
-      if (comp(make_r(*cur), data)) {
+      if (Compare::operator()(make_r(*cur), data)) {
         if (cur->right)
           cur = cur->right;
         else {
           res = ADD_RIGHT;
           break;
         }
-      } else if (comp(data, make_r(*cur))) {
+      } else if (Compare::operator()(data, make_r(*cur))) {
         if (cur->left)
           cur = cur->left;
         else {
@@ -215,7 +210,7 @@ public:
     if (res == ADD_LEFT) {
       cur->left = &data;
       return (cur->left);
-    } else { // if (res == ADD_RIGHT)  {
+    } else { /// res == ADD_RIGHT)
       cur->right = &data;
       return (cur->right);
     }
