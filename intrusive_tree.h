@@ -20,18 +20,6 @@ public:
   intrusive_tree(intrusive_tree const& other) = delete;
   intrusive_tree(intrusive_tree&& other) = delete;
 
-//  intrusive_tree& operator=(intrusive_tree const& other) {
-//    if (this != &other)
-//      Tree(other).swap(*this);
-//    return *this;
-//  }
-//
-//  intrusive_tree& operator=(intrusive_tree&& other) {
-//    if (this != &other)
-//      Tree(std::move(other)).swap(*this);
-//    return *this;
-//  }
-
   void swap(intrusive_tree& other) {
     std::swap(this->comp, other.comp);
     sentinel->swap(*other.sentinel);

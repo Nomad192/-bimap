@@ -316,7 +316,7 @@ public:
     left_iterator l_iter = find_left(key);
     if (l_iter == end_left()) {
       right_t r_data{};
-      right_iterator r_iter = find_right(r_data);
+      right_iterator r_iter = find_right(std::move(r_data));
       if (r_iter == end_right()) {
         return *(insert(key, r_data).flip());
       } else {
@@ -335,7 +335,7 @@ public:
     right_iterator r_iter = find_right(key);
     if (r_iter == end_right()) {
       left_t l_data{};
-      left_iterator l_iter = find_left(l_data);
+      left_iterator l_iter = find_left(std::move(l_data));
       if (l_iter == end_left()) {
         return *(insert(l_data, key));
       } else {
