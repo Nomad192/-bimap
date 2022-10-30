@@ -320,10 +320,8 @@ public:
       if (r_iter == end_right()) {
         return *(insert(key, r_data).flip());
       } else {
-
-        static_cast<details::key_t<Left, left_tag>&>(*(r_iter.flip().it_tree))
-            .key = left_t(key);
-        return *r_iter;
+        erase_right(r_iter);
+        return *(insert(key, std::move(r_data)).flip());
       }
     }
 
@@ -339,10 +337,8 @@ public:
       if (l_iter == end_left()) {
         return *(insert(l_data, key));
       } else {
-
-        static_cast<details::key_t<Right, right_tag>&>(*(l_iter.flip().it_tree))
-            .key = right_t(key);
-        return *l_iter;
+        erase_left(l_iter);
+        return *(insert(std::move(l_data), key));
       }
     }
 
