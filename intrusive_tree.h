@@ -144,7 +144,7 @@ public:
 private:
   enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
   node_t* find(const T& data, find_result& res) const {
-    res = ADD_LEFT;
+    res = find_result::ADD_LEFT;
     if (sentinel->left == nullptr)
       return sentinel;
 
@@ -154,18 +154,18 @@ private:
         if (cur->right)
           cur = cur->right;
         else {
-          res = ADD_RIGHT;
+          res = find_result::ADD_RIGHT;
           break;
         }
       } else if (Compare::operator()(data, make_r(*cur))) {
         if (cur->left)
           cur = cur->left;
         else {
-          res = ADD_LEFT;
+          res = find_result::ADD_LEFT;
           break;
         }
       } else {
-        res = THERE_IS;
+        res = find_result::THERE_IS;
         break;
       }
     }
@@ -174,39 +174,39 @@ private:
 
 public:
   iterator find(const T& x) const {
-    find_result res = THERE_IS;
+    find_result res = find_result::THERE_IS;
     node_t* cur = find(x, res);
-    if (res == THERE_IS)
+    if (res == find_result::THERE_IS)
       return (cur);
 
     return end();
   }
 
   iterator lower_bound(const T& x) const {
-    find_result res = THERE_IS;
+    find_result res = find_result::THERE_IS;
     node_t* cur = find(x, res);
-    if (res == THERE_IS || res == ADD_LEFT)
+    if (res == find_result::THERE_IS || res == find_result::ADD_LEFT)
       return (cur);
     return (cur->next());
   }
 
   iterator upper_bound(const T& x) const {
-    find_result res = THERE_IS;
+    find_result res = find_result::THERE_IS;
     node_t* cur = find(x, res);
-    if (res == ADD_LEFT)
+    if (res == find_result::ADD_LEFT)
       return (cur);
     return (cur->next());
   }
 
   iterator insert(T& data) {
-    find_result res = ADD_LEFT;
+    find_result res = find_result::ADD_LEFT;
     node_t* cur = find(data, res);
-    if (res == THERE_IS)
+    if (res == find_result::THERE_IS)
       return end();
 
     static_cast<node_t*>(&data)->parent = cur;
     n_node++;
-    if (res == ADD_LEFT) {
+    if (res == find_result::ADD_LEFT) {
       cur->left = &data;
       return (cur->left);
     } else { /// res == ADD_RIGHT)
@@ -223,9 +223,9 @@ public:
   }
 
   iterator remove(T& data) {
-    find_result res = THERE_IS;
+    find_result res = find_result::THERE_IS;
     node_t* cur = find(data, res);
-    if (res == THERE_IS)
+    if (res == find_result::THERE_IS)
       return end();
     return remove(iterator(cur));
   }
