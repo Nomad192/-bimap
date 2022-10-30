@@ -135,11 +135,16 @@ public:
   }
 
 private:
-  enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
-  node_t* find(const T& data, find_result& res) const {
-    res = find_result::ADD_LEFT;
+  //enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
+  struct find_result
+  {
+    enum { THERE_IS, ADD_RIGHT, ADD_LEFT } flag;
+    node_t *node;
+  };
+  find_result find_with_result(const T& data) const {
+    find_result res = {find_result::ADD_LEFT, sentinel};
     if (sentinel->left == nullptr)
-      return sentinel;
+      return res;
 
     node_t* cur = sentinel->left;
     while (cur != nullptr) {
@@ -147,63 +152,60 @@ private:
         if (cur->right)
           cur = cur->right;
         else {
-          res = find_result::ADD_RIGHT;
+          res.flag = find_result::ADD_RIGHT;
           break;
         }
       } else if (Compare::operator()(data, make_r(*cur))) {
         if (cur->left)
           cur = cur->left;
         else {
-          res = find_result::ADD_LEFT;
+          res.flag = find_result::ADD_LEFT;
           break;
         }
       } else {
-        res = find_result::THERE_IS;
+        res.flag = find_result::THERE_IS;
         break;
       }
     }
-    return cur;
+    res.node = cur;
+    return res;
   }
 
 public:
   iterator find(const T& x) const {
-    find_result res = find_result::THERE_IS;
-    node_t* cur = find(x, res);
-    if (res == find_result::THERE_IS)
-      return (cur);
+    find_result res = find_with_result(x);
+    if (res.flag == find_result::THERE_IS)
+      return (res.node);
 
     return end();
   }
 
   iterator lower_bound(const T& x) const {
-    find_result res = find_result::THERE_IS;
-    node_t* cur = find(x, res);
-    if (res == find_result::THERE_IS || res == find_result::ADD_LEFT)
-      return (cur);
-    return (cur->next());
+    find_result res = find_with_result(x);
+    if (res.flag == find_result::THERE_IS || res.flag == find_result::ADD_LEFT)
+      return (res.node);
+    return (res.node->next());
   }
 
   iterator upper_bound(const T& x) const {
-    find_result res = find_result::THERE_IS;
-    node_t* cur = find(x, res);
-    if (res == find_result::ADD_LEFT)
-      return (cur);
-    return (cur->next());
+    find_result res = find_with_result(x);
+    if (res.flag == find_result::ADD_LEFT)
+      return (res.node);
+    return (res.node->next());
   }
 
   iterator insert(T& data) {
-    find_result res = find_result::ADD_LEFT;
-    node_t* cur = find(data, res);
-    if (res == find_result::THERE_IS)
+    find_result res = find_with_result(data);
+    if (res.flag == find_result::THERE_IS)
       return end();
 
-    static_cast<node_t*>(&data)->parent = cur;
-    if (res == find_result::ADD_LEFT) {
-      cur->left = &data;
-      return (cur->left);
+    static_cast<node_t*>(&data)->parent = res.node;
+    if (res.flag == find_result::ADD_LEFT) {
+      res.node->left = &data;
+      return (res.node->left);
     } else { /// res == ADD_RIGHT)
-      cur->right = &data;
-      return (cur->right);
+      res.node->right = &data;
+      return (res.node->right);
     }
   }
 
@@ -214,11 +216,10 @@ public:
   }
 
   iterator remove(T& data) {
-    find_result res = find_result::THERE_IS;
-    node_t* cur = find(data, res);
-    if (res == find_result::THERE_IS)
+    find_result res = find_with_result(data);
+    if (res.flag == find_result::THERE_IS)
       return end();
-    return remove(iterator(cur));
+    return remove(iterator(res.node));
   }
 };
 } // namespace intrusive
