@@ -385,19 +385,11 @@ public:
                          bimap<L, R, cL, cR> const& b);
 
   bool eq_left(const left_t& a, const left_t& b) const {
-    if (static_cast<CompareLeft>(left_tree)(a, b))
-      return false;
-    if (static_cast<CompareLeft>(left_tree)(b, a))
-      return false;
-    return true;
+    return left_tree.template is_equals<left_t>(a, b);
   }
 
   bool eq_right(const right_t& a, const right_t& b) const {
-    if (static_cast<CompareRight>(right_tree)(a, b))
-      return false;
-    if (static_cast<CompareRight>(right_tree)(b, a))
-      return false;
-    return true;
+    return right_tree.template is_equals<right_t>(a, b);
   }
 };
 

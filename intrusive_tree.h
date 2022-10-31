@@ -140,6 +140,16 @@ public:
     return static_cast<T&>(p);
   }
 
+  template <typename key>
+  bool is_equals(const key& a, const key& b) const
+  {
+    if (Compare::operator()(a, b))
+      return false;
+    if (Compare::operator()(b, a))
+      return false;
+    return true;
+  }
+
 private:
   struct find_result {
     enum { THERE_IS, ADD_RIGHT, ADD_LEFT } flag;
