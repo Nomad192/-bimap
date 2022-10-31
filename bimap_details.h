@@ -37,7 +37,7 @@ struct node_t : public key_t<Left, left_tag>, public key_t<Right, right_tag> {
                                                     std::move(right)) {}
 };
 
-struct sentinel_t : public intrusive::node<left_tag>,
-                    public intrusive::node<right_tag> {};
+//struct sentinel_t : public intrusive::node<left_tag>,
+//                    public intrusive::node<right_tag> {};
 
 } // namespace details

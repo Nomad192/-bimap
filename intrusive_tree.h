@@ -11,25 +11,37 @@ class intrusive_tree : public Compare {
   using node_t = node<Tag>;
   static_assert(std::is_convertible_v<T*, node_t*>, "invalid value type");
 
-  node_t* sentinel;
-
+  node_t sentinel;
 public:
-  explicit intrusive_tree(node_t* sentinel, Compare compare = Compare{})
-      : Compare(std::move(compare)), sentinel(sentinel) {}
+  explicit intrusive_tree(Compare compare = Compare{})
+      : Compare(std::move(compare)) {}
 
   intrusive_tree(intrusive_tree const& other) = delete;
   intrusive_tree(intrusive_tree&& other) = delete;
 
   void swap(intrusive_tree& other) {
     std::swap(static_cast<Compare&>(*this), static_cast<Compare&>(other));
-    sentinel->swap(*other.sentinel);
+    sentinel.right = nullptr;
+    other.sentinel.right = nullptr;
+    sentinel.swap(other.sentinel);
+    //std::swap(sentinel, other.sentinel);
   }
 
   bool empty() const {
-    return sentinel->left == nullptr;
+    return sentinel.left == nullptr;
+  }
+
+  node_t* get_sentinel()
+  {
+    return &sentinel;
   }
 
 private:
+  node_t* get_sentinel() const
+  {
+    return const_cast<node_t *>(&sentinel);
+  }
+
   template <typename iT>
   class inorder_iterator {
   private:
@@ -41,13 +53,13 @@ private:
     template <typename tT, typename tCompare, typename tTag>
     static inorder_iterator
     begin_iter(const intrusive_tree<tT, tCompare, tTag>* tree) {
-      return (node_t::min_node(tree->sentinel));
+      return (node_t::min_node(tree->get_sentinel()));
     }
 
     template <typename tT, typename tCompare, typename tTag>
     static inorder_iterator
     end_iter(const intrusive_tree<tT, tCompare, tTag>* tree) {
-      return (tree->sentinel);
+      return tree->get_sentinel();
     }
 
   public:
@@ -139,11 +151,11 @@ private:
 
   template <class fT>
   find_result find_with_result(fT data) const {
-    find_result res = {find_result::ADD_LEFT, sentinel};
-    if (sentinel->left == nullptr)
+    find_result res = {find_result::ADD_LEFT, get_sentinel()};
+    if (sentinel.left == nullptr)
       return res;
 
-    node_t* cur = sentinel->left;
+    node_t* cur = sentinel.left;
     while (cur != nullptr) {
       if (Compare::operator()(make_r(*cur).key, data)) {
         if (cur->right)

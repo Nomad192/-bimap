@@ -25,7 +25,7 @@ class bimap {
   using l_tree_t = intrusive_tree<Left, l_comparator_t, left_tag>;
   using r_tree_t = intrusive_tree<Right, r_comparator_t, right_tag>;
 
-  details::sentinel_t sentinel; /// only this order, sentinel first
+  //details::sentinel_t sentinel; /// only this order, sentinel first
   l_tree_t left_tree;
   r_tree_t right_tree;
   size_t n_node = 0;
@@ -96,10 +96,13 @@ class bimap {
     base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>
     flip() const {
       if (it_tree.is_end())
-        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
-                             TagBase>(
-            typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(
-                static_cast<details::sentinel_t*>(it_tree.get_node())));
+      {
+        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>( typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(reinterpret_cast<intrusive::node<TagPair>*>(it_tree->right)));
+      }
+//        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
+//                             TagBase>(
+//            typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(
+//                static_cast<details::sentinel_t*>(it_tree.get_node())));
 
       return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
                            TagBase>(
@@ -120,6 +123,12 @@ public:
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
     std::swap(n_node, other.n_node);
+    right_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<right_tag>*>(left_tree.get_sentinel());
+    left_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<left_tag>*>(right_tree.get_sentinel());
+
+    other.right_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<right_tag>*>(other.left_tree.get_sentinel());
+    other.left_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<left_tag>*>(other.right_tree.get_sentinel());
+
   }
 
   // Возващает итератор на минимальный по порядку left.
@@ -143,25 +152,30 @@ public:
   // Создает bimap не содержащий ни одной пары.
   explicit bimap(CompareLeft compare_left = CompareLeft(),
                  CompareRight compare_right = CompareRight())
-      : left_tree(&sentinel,
-                  std::move(l_comparator_t(std::move(compare_left)))),
-        right_tree(&sentinel,
-                   std::move(r_comparator_t(std::move(compare_right)))) {}
+      : left_tree(std::move(l_comparator_t(std::move(compare_left)))),
+        right_tree(std::move(r_comparator_t(std::move(compare_right)))) {
+    right_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<right_tag>*>(left_tree.get_sentinel());
+    left_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<left_tag>*>(right_tree.get_sentinel());
+  }
 
   // Конструкторы от других и присваивания
   bimap(bimap const& other)
-      : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
-        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree))
+      : left_tree(static_cast<l_comparator_t>(other.left_tree)),
+        right_tree(static_cast<r_comparator_t>(other.right_tree))
   ///,n_node(0) - because insert
   {
+    right_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<right_tag>*>(left_tree.get_sentinel());
+    left_tree.get_sentinel()->right = reinterpret_cast<intrusive::node<left_tag>*>(right_tree.get_sentinel());
     for (auto it = other.begin_left(); it != other.end_left(); it++) {
       this->insert(*it, *(it.flip()));
     }
   }
   bimap(bimap&& other) noexcept
-      : left_tree(&sentinel, static_cast<l_comparator_t>(other.left_tree)),
-        right_tree(&sentinel, static_cast<r_comparator_t>(other.right_tree)),
+      : left_tree(static_cast<l_comparator_t>(other.left_tree)),
+        right_tree(static_cast<r_comparator_t>(other.right_tree)),
         n_node(other.n_node) {
+//    std::swap(left_tree, other.left_tree);
+//    std::swap(right_tree, other.right_tree);
     left_tree.swap(other.left_tree);
     right_tree.swap(other.right_tree);
   }
