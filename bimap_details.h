@@ -17,11 +17,17 @@ struct key_t : public intrusive::node<Tag> {
 template <typename Base, typename Comparator, typename Tag>
 struct comparator_t : Comparator {
   explicit comparator_t(Comparator &&comp) : Comparator(std::move(comp)) {}
-  template <typename Base1, typename Base2>
-  bool operator()(const key_t<Base1, Tag>& a,
-                  const key_t<Base2, Tag>& b) const {
-    return Comparator::operator()(a.key, b.key);
+  //template <typename Base1, typename Base2>
+//  bool operator()(const key_t<Base1, Tag>& a,
+//                  const key_t<Base2, Tag>& b) const {
+//    return Comparator::operator()(a.key, b.key);
+//  }
+
+  bool operator()(const Base& a,
+                  const Base& b) const {
+    return Comparator::operator()(a, b);
   }
+
 };
 
 template <typename Left, typename Right>

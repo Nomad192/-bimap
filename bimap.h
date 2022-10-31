@@ -191,14 +191,12 @@ public:
 private:
   template <typename lpf = left_t, typename rpf = right_t>
   left_iterator add(lpf&& left, rpf&& right) {
-    if (left_tree.find(details::key_t<lpf&&, left_tag>(
-            std::forward<lpf>(left))) == left_tree.end() &&
-        right_tree.find(details::key_t<rpf&&, right_tag>(
-            std::forward<rpf>(right))) == right_tree.end()) {
+    if (left_tree.template find<const left_t&>(left) == left_tree.end() &&
+        right_tree.template find<const right_t&>(right) == right_tree.end()) {
       auto* new_node =
           new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
-      typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
-      right_tree.insert(*new_node);
+      typename l_tree_t::iterator iter_left_tree = left_tree.template insert<const left_t&>(*new_node);
+      right_tree.template insert<const right_t&>(*new_node);
 
       n_node++;
 
@@ -285,11 +283,10 @@ public:
   // Возвращает итератор по элементу. Если не найден - соответствующий end()
   left_iterator find_left(left_t const& left) const {
     return left_iterator(
-        left_tree.find(details::key_t<left_t const&, details::left_tag>{left}));
+        left_tree.template find<left_t const&>(left));
   }
   right_iterator find_right(right_t const& right) const {
-    return right_iterator(right_tree.find(
-        details::key_t<right_t const&, details::right_tag>{right}));
+    return right_iterator(right_tree.template find<right_t const&>(right));
   }
 
   // Возвращает противоположный элемент по элементу
@@ -318,14 +315,10 @@ public:
   right_t const& at_left_or_default(left_t const& key) {
     left_iterator l_iter = find_left(key);
     if (l_iter == end_left()) {
-      right_t r_data{};
-      right_iterator r_iter = find_right(std::move(r_data));
-      if (r_iter == end_right()) {
-        return *(insert(key, r_data).flip());
-      } else {
+      right_iterator r_iter = find_right(right_t());
+      if (r_iter != end_right())
         erase_right(r_iter);
-        return *(insert(key, std::move(r_data)).flip());
-      }
+      return *(insert(key, right_t()).flip());
     }
 
     return *(l_iter.flip());
@@ -335,14 +328,10 @@ public:
   left_t const& at_right_or_default(right_t const& key) {
     right_iterator r_iter = find_right(key);
     if (r_iter == end_right()) {
-      left_t l_data{};
-      left_iterator l_iter = find_left(std::move(l_data));
-      if (l_iter == end_left()) {
-        return *(insert(l_data, key));
-      } else {
+      left_iterator l_iter = find_left(left_t());
+      if (l_iter != end_left())
         erase_left(l_iter);
-        return *(insert(std::move(l_data), key));
-      }
+      return *(insert(left_t(), key));
     }
 
     return *(r_iter.flip());
@@ -352,21 +341,17 @@ public:
   // Возвращают итераторы на соответствующие элементы
   // Смотри std::lower_bound, std::upper_bound.
   left_iterator lower_bound_left(const left_t& key) const {
-    return left_iterator{left_tree.lower_bound(
-        details::key_t<const left_t&, details::left_tag>{key})};
+    return left_iterator{left_tree.lower_bound(key)};
   }
   left_iterator upper_bound_left(const left_t& key) const {
-    return left_iterator{left_tree.upper_bound(
-        details::key_t<const left_t&, details::left_tag>{key})};
+    return left_iterator{left_tree.upper_bound(key)};
   }
 
   right_iterator lower_bound_right(const right_t& key) const {
-    return right_iterator{right_tree.lower_bound(
-        details::key_t<const right_t&, details::right_tag>{key})};
+    return right_iterator{right_tree.lower_bound(key)};
   }
   right_iterator upper_bound_right(const right_t& key) const {
-    return right_iterator{right_tree.upper_bound(
-        details::key_t<const right_t&, details::right_tag>{key})};
+    return right_iterator{right_tree.upper_bound(key)};
   }
 
   // Проверка на пустоту

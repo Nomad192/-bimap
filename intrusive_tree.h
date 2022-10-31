@@ -138,21 +138,21 @@ private:
   };
 
   template <class fT>
-  find_result find_with_result(fT& data) const {
+  find_result find_with_result(fT data) const {
     find_result res = {find_result::ADD_LEFT, sentinel};
     if (sentinel->left == nullptr)
       return res;
 
     node_t* cur = sentinel->left;
     while (cur != nullptr) {
-      if (Compare::operator()(make_r(*cur), data)) {
+      if (Compare::operator()(make_r(*cur).key, data)) {
         if (cur->right)
           cur = cur->right;
         else {
           res.flag = find_result::ADD_RIGHT;
           break;
         }
-      } else if (Compare::operator()(data, make_r(*cur))) {
+      } else if (Compare::operator()(data, make_r(*cur).key)) {
         if (cur->left)
           cur = cur->left;
         else {
@@ -171,7 +171,7 @@ private:
 public:
   template <class fT>
   iterator find(fT x) const {
-    find_result res = find_with_result(x);
+    find_result res = find_with_result<fT>(x);
     if (res.flag == find_result::THERE_IS)
       return (res.node);
 
@@ -180,7 +180,7 @@ public:
 
   template <class lbT>
   iterator lower_bound(lbT x) const {
-    find_result res = find_with_result(x);
+    find_result res = find_with_result<lbT>(x);
     if (res.flag == find_result::THERE_IS || res.flag == find_result::ADD_LEFT)
       return (res.node);
     return (res.node->next());
@@ -188,14 +188,15 @@ public:
 
   template <class ubT>
   iterator upper_bound(ubT x) const {
-    find_result res = find_with_result(x);
+    find_result res = find_with_result<ubT>(x);
     if (res.flag == find_result::ADD_LEFT)
       return (res.node);
     return (res.node->next());
   }
 
-  iterator insert(T& data) {
-    find_result res = find_with_result(data);
+  template <class inT>
+  iterator insert(node_t& data) {
+    find_result res = find_with_result<inT>(make_r(data).key);
     if (res.flag == find_result::THERE_IS)
       return end();
 
@@ -217,7 +218,7 @@ public:
 
   template <class rT>
   iterator remove(rT data) {
-    find_result res = find_with_result(data);
+    find_result res = find_with_result<rT>(data);
     if (res.flag == find_result::THERE_IS)
       return end();
     return remove(iterator(res.node));
