@@ -233,8 +233,6 @@ public:
     auto* pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
     n_node--;
-    //    left_tree.remove(pointer);  /// for left_tree.size()
-    //    right_tree.remove(pointer); /// for right_tree.size()
 
     delete pointer;
     return it;
@@ -255,8 +253,6 @@ public:
     auto* pointer = static_cast<node_t*>(&(*(it.it_tree)));
     it++;
     n_node--;
-    //    left_tree.remove(pointer);  /// for left_tree.size()
-    //    right_tree.remove(pointer); /// for right_tree.size()
 
     delete pointer;
     return it;
@@ -383,9 +379,32 @@ public:
 
   // Возвращает размер бимапы (кол-во пар)
   std::size_t size() const {
-    // assert(left_tree.size() == right_tree.size());
+    return n_node;
+  }
 
-    return n_node; // left_tree.size();
+  template <typename L, typename R, typename cL, typename cR>
+  friend bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b);
+
+  template <typename L, typename R, typename cL, typename cR>
+  friend bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b);
+
+
+  bool eq_left(const left_t &a, const left_t &b) const
+  {
+    if(static_cast<l_comparator_t>(left_tree).comp(a, b))
+      return false;
+    if(static_cast<l_comparator_t>(left_tree).comp(b, a))
+      return false;
+    return true;
+  }
+
+  bool eq_right(const right_t &a, const right_t &b) const
+  {
+    if(static_cast<r_comparator_t>(right_tree).comp(a, b))
+      return false;
+    if(static_cast<r_comparator_t>(right_tree).comp(b, a))
+      return false;
+    return true;
   }
 };
 
@@ -397,9 +416,9 @@ bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
 
   for (auto it_a = a.begin_left(), it_b = b.begin_left();
        it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++) {
-    if (*it_a != *it_b)
+    if (!a.eq_left(*it_a, *it_b))  //*it_a != *it_b)
       return false;
-    if (*it_a.flip() != *it_b.flip())
+    if (!a.eq_right(*it_a.flip(), *it_b.flip()))  //*it_a.flip() != *it_b.flip())
       return false;
   }
 
@@ -410,4 +429,3 @@ template <typename L, typename R, typename cL, typename cR>
 bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
   return !(a == b);
 }
-//////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
