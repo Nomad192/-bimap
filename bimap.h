@@ -383,26 +383,25 @@ public:
   }
 
   template <typename L, typename R, typename cL, typename cR>
-  friend bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b);
+  friend bool operator==(bimap<L, R, cL, cR> const& a,
+                         bimap<L, R, cL, cR> const& b);
 
   template <typename L, typename R, typename cL, typename cR>
-  friend bool operator!=(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b);
+  friend bool operator!=(bimap<L, R, cL, cR> const& a,
+                         bimap<L, R, cL, cR> const& b);
 
-
-  bool eq_left(const left_t &a, const left_t &b) const
-  {
-    if(static_cast<CompareLeft>(left_tree)(a, b))
+  bool eq_left(const left_t& a, const left_t& b) const {
+    if (static_cast<CompareLeft>(left_tree)(a, b))
       return false;
-    if(static_cast<CompareLeft>(left_tree)(b, a))
+    if (static_cast<CompareLeft>(left_tree)(b, a))
       return false;
     return true;
   }
 
-  bool eq_right(const right_t &a, const right_t &b) const
-  {
-    if(static_cast<CompareRight>(right_tree)(a, b))
+  bool eq_right(const right_t& a, const right_t& b) const {
+    if (static_cast<CompareRight>(right_tree)(a, b))
       return false;
-    if(static_cast<CompareRight>(right_tree)(b, a))
+    if (static_cast<CompareRight>(right_tree)(b, a))
       return false;
     return true;
   }
@@ -416,9 +415,9 @@ bool operator==(bimap<L, R, cL, cR> const& a, bimap<L, R, cL, cR> const& b) {
 
   for (auto it_a = a.begin_left(), it_b = b.begin_left();
        it_a != a.end_left() && it_b != b.end_left(); it_a++, it_b++) {
-    if (!a.eq_left(*it_a, *it_b))  //*it_a != *it_b)
+    if (!a.eq_left(*it_a, *it_b)) //*it_a != *it_b)
       return false;
-    if (!a.eq_right(*it_a.flip(), *it_b.flip()))  //*it_a.flip() != *it_b.flip())
+    if (!a.eq_right(*it_a.flip(), *it_b.flip())) //*it_a.flip() != *it_b.flip())
       return false;
   }
 
