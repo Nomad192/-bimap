@@ -391,18 +391,18 @@ public:
 
   bool eq_left(const left_t &a, const left_t &b) const
   {
-    if(static_cast<l_comparator_t>(left_tree).comp(a, b))
+    if(static_cast<CompareLeft>(left_tree)(a, b))
       return false;
-    if(static_cast<l_comparator_t>(left_tree).comp(b, a))
+    if(static_cast<CompareLeft>(left_tree)(b, a))
       return false;
     return true;
   }
 
   bool eq_right(const right_t &a, const right_t &b) const
   {
-    if(static_cast<r_comparator_t>(right_tree).comp(a, b))
+    if(static_cast<CompareRight>(right_tree)(a, b))
       return false;
-    if(static_cast<r_comparator_t>(right_tree).comp(b, a))
+    if(static_cast<CompareRight>(right_tree)(b, a))
       return false;
     return true;
   }

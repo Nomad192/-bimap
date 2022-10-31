@@ -21,7 +21,7 @@ public:
   intrusive_tree(intrusive_tree&& other) = delete;
 
   void swap(intrusive_tree& other) {
-    std::swap(this->comp, other.comp);
+    std::swap(static_cast<Compare&>(*this), static_cast<Compare&>(other));
     sentinel->swap(*other.sentinel);
   }
 

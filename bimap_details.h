@@ -15,14 +15,12 @@ struct key_t : public intrusive::node<Tag> {
 };
 
 template <typename Base, typename Comparator, typename Tag>
-struct comparator_t {
-  Comparator comp;
-  explicit comparator_t(Comparator comp) : comp(comp) {}
+struct comparator_t : Comparator {
 
   template <typename Base1, typename Base2>
   bool operator()(const key_t<Base1, Tag>& a,
                   const key_t<Base2, Tag>& b) const {
-    return comp(a.key, b.key);
+    return Comparator::operator()(a.key, b.key);
   }
 };
 
