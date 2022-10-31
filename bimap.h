@@ -1,10 +1,11 @@
 #pragma once
-#include <cassert>
-#include <cstddef>
-#include <stdexcept>
 
 #include "bimap_details.h"
 #include "intrusive_tree.h"
+
+#include <cassert>
+#include <cstddef>
+#include <stdexcept>
 
 template <typename Left, typename Right, typename CompareLeft = std::less<Left>,
           typename CompareRight = std::less<Right>>
@@ -94,10 +95,16 @@ class bimap {
     // flip() невалидного итератора неопределен.
     base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>
     flip() const {
-      if(it_tree.is_end())
-        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(static_cast<details::sentinel_t*>(it_tree.get_node())));
+      if (it_tree.is_end())
+        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
+                             TagBase>(
+            typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(
+                static_cast<details::sentinel_t*>(it_tree.get_node())));
 
-      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(static_cast<details::node_t<Left, Right>*>(&(*it_tree))));
+      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
+                           TagBase>(
+          typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(
+              static_cast<details::node_t<Left, Right>*>(&(*it_tree))));
     }
   };
 
@@ -184,10 +191,10 @@ public:
 private:
   template <typename lpf = left_t, typename rpf = right_t>
   left_iterator add(lpf&& left, rpf&& right) {
-    if (left_tree.find(details::key_t<lpf&&, left_tag>(std::forward<lpf>(left))) ==
-            left_tree.end() &&
-        right_tree.find(details::key_t<rpf&&, right_tag>(std::forward<rpf>(right))) ==
-            right_tree.end()) {
+    if (left_tree.find(details::key_t<lpf&&, left_tag>(
+            std::forward<lpf>(left))) == left_tree.end() &&
+        right_tree.find(details::key_t<rpf&&, right_tag>(
+            std::forward<rpf>(right))) == right_tree.end()) {
       auto* new_node =
           new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
       typename l_tree_t::iterator iter_left_tree = left_tree.insert(*new_node);
@@ -285,8 +292,8 @@ public:
         left_tree.find(details::key_t<left_t const&, details::left_tag>{left}));
   }
   right_iterator find_right(right_t const& right) const {
-    return right_iterator(
-        right_tree.find(details::key_t<right_t const&, details::right_tag>{right}));
+    return right_iterator(right_tree.find(
+        details::key_t<right_t const&, details::right_tag>{right}));
   }
 
   // Возвращает противоположный элемент по элементу

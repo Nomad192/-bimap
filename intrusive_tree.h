@@ -71,13 +71,11 @@ private:
       return cur != other.cur;
     }
 
-    bool is_end() const
-    {
+    bool is_end() const {
       return cur->parent == nullptr;
     }
 
-    node_t *get_node() const
-    {
+    node_t* get_node() const {
       return cur;
     }
 
@@ -133,11 +131,10 @@ public:
   }
 
 private:
-  //enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
-  struct find_result
-  {
+  // enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
+  struct find_result {
     enum { THERE_IS, ADD_RIGHT, ADD_LEFT } flag;
-    node_t *node;
+    node_t* node;
   };
 
   template <class fT>
