@@ -17,14 +17,14 @@ class bimap {
 
   template <typename Base, typename Compare, typename Tag>
   using intrusive_tree =
-      intrusive::intrusive_tree<details::storage<Base, Tag>, Compare, Tag>;
+      intrusive::intrusive_tree<details::key_t<Base, Tag>, Compare, Tag>;
 
   using l_comparator_t = details::comparator_t<Left, CompareLeft, left_tag>;
   using r_comparator_t = details::comparator_t<Right, CompareRight, right_tag>;
   using l_tree_t = intrusive_tree<Left, l_comparator_t, left_tag>;
   using r_tree_t = intrusive_tree<Right, r_comparator_t, right_tag>;
 
-  details::sentinel_t<Left, Right> sentinel; /// only this order, sentinel first
+  details::sentinel_t sentinel; /// only this order, sentinel first
   l_tree_t left_tree;
   r_tree_t right_tree;
   size_t n_node = 0;
@@ -48,10 +48,10 @@ class bimap {
     // Разыменование итератора end_left() неопределено.
     // Разыменование невалидного итератора неопределено.
     Base const& operator*() const {
-      return ((*it_tree).get());
+      return ((*it_tree).key);
     }
     Base const* operator->() const {
-      return &(*it_tree).get();
+      return &(*it_tree).key;
     }
 
     // Переход к следующему по величине left'у.
@@ -94,10 +94,10 @@ class bimap {
     // flip() невалидного итератора неопределен.
     base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>
     flip() const {
-      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair,
-                           TagBase>(
-          typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(
-              dynamic_cast<details::storage<Pair, TagPair>*>(&(*it_tree))));
+      if(it_tree.is_end())
+        return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(static_cast<details::sentinel_t*>(it_tree.get_node())));
+
+      return base_iterator<Pair, Base, ComparePair, CompareBase, TagPair, TagBase>(typename intrusive_tree<Pair, ComparePair, TagPair>::iterator(static_cast<details::node_t<Left, Right>*>(&(*it_tree))));
     }
   };
 
@@ -184,9 +184,9 @@ public:
 private:
   template <typename lpf = left_t, typename rpf = right_t>
   left_iterator add(lpf&& left, rpf&& right) {
-    if (left_tree.find(details::fake_key_t<Left, left_tag>(left)) ==
+    if (left_tree.find(details::key_t<lpf&&, left_tag>(std::forward<lpf>(left))) ==
             left_tree.end() &&
-        right_tree.find(details::fake_key_t<Right, right_tag>(right)) ==
+        right_tree.find(details::key_t<rpf&&, right_tag>(std::forward<rpf>(right))) ==
             right_tree.end()) {
       auto* new_node =
           new node_t{std::forward<lpf>(left), std::forward<rpf>(right)};
@@ -282,11 +282,11 @@ public:
   // Возвращает итератор по элементу. Если не найден - соответствующий end()
   left_iterator find_left(left_t const& left) const {
     return left_iterator(
-        left_tree.find(details::fake_key_t<Left, details::left_tag>{left}));
+        left_tree.find(details::key_t<left_t const&, details::left_tag>{left}));
   }
   right_iterator find_right(right_t const& right) const {
     return right_iterator(
-        right_tree.find(details::fake_key_t<Right, details::right_tag>{right}));
+        right_tree.find(details::key_t<right_t const&, details::right_tag>{right}));
   }
 
   // Возвращает противоположный элемент по элементу
@@ -350,20 +350,20 @@ public:
   // Смотри std::lower_bound, std::upper_bound.
   left_iterator lower_bound_left(const left_t& key) const {
     return left_iterator{left_tree.lower_bound(
-        details::fake_key_t<Left, details::left_tag>{key})};
+        details::key_t<const left_t&, details::left_tag>{key})};
   }
   left_iterator upper_bound_left(const left_t& key) const {
     return left_iterator{left_tree.upper_bound(
-        details::fake_key_t<Left, details::left_tag>{key})};
+        details::key_t<const left_t&, details::left_tag>{key})};
   }
 
   right_iterator lower_bound_right(const right_t& key) const {
     return right_iterator{right_tree.lower_bound(
-        details::fake_key_t<Right, details::right_tag>{key})};
+        details::key_t<const right_t&, details::right_tag>{key})};
   }
   right_iterator upper_bound_right(const right_t& key) const {
     return right_iterator{right_tree.upper_bound(
-        details::fake_key_t<Right, details::right_tag>{key})};
+        details::key_t<const right_t&, details::right_tag>{key})};
   }
 
   // Проверка на пустоту

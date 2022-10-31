@@ -71,6 +71,16 @@ private:
       return cur != other.cur;
     }
 
+    bool is_end() const
+    {
+      return cur->parent == nullptr;
+    }
+
+    node_t *get_node() const
+    {
+      return cur;
+    }
+
     reference operator*() const {
       return *(static_cast<iT*>(cur));
     }
@@ -129,7 +139,9 @@ private:
     enum { THERE_IS, ADD_RIGHT, ADD_LEFT } flag;
     node_t *node;
   };
-  find_result find_with_result(const T& data) const {
+
+  template <class fT>
+  find_result find_with_result(fT& data) const {
     find_result res = {find_result::ADD_LEFT, sentinel};
     if (sentinel->left == nullptr)
       return res;
@@ -160,7 +172,8 @@ private:
   }
 
 public:
-  iterator find(const T& x) const {
+  template <class fT>
+  iterator find(fT x) const {
     find_result res = find_with_result(x);
     if (res.flag == find_result::THERE_IS)
       return (res.node);
@@ -168,14 +181,16 @@ public:
     return end();
   }
 
-  iterator lower_bound(const T& x) const {
+  template <class lbT>
+  iterator lower_bound(lbT x) const {
     find_result res = find_with_result(x);
     if (res.flag == find_result::THERE_IS || res.flag == find_result::ADD_LEFT)
       return (res.node);
     return (res.node->next());
   }
 
-  iterator upper_bound(const T& x) const {
+  template <class ubT>
+  iterator upper_bound(ubT x) const {
     find_result res = find_with_result(x);
     if (res.flag == find_result::ADD_LEFT)
       return (res.node);
@@ -203,7 +218,8 @@ public:
     return it_next;
   }
 
-  iterator remove(T& data) {
+  template <class rT>
+  iterator remove(rT data) {
     find_result res = find_with_result(data);
     if (res.flag == find_result::THERE_IS)
       return end();
