@@ -15,7 +15,7 @@ class intrusive_tree : public Compare {
 
 public:
   explicit intrusive_tree(node_t* sentinel, Compare compare = Compare{})
-      : sentinel(sentinel), Compare(std::move(compare)) {}
+      : Compare(std::move(compare)), sentinel(sentinel) {}
 
   intrusive_tree(intrusive_tree const& other) = delete;
   intrusive_tree(intrusive_tree&& other) = delete;
