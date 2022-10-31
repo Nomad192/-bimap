@@ -12,6 +12,7 @@ class intrusive_tree : public Compare {
   static_assert(std::is_convertible_v<T*, node_t*>, "invalid value type");
 
   node_t sentinel;
+
 public:
   explicit intrusive_tree(Compare compare = Compare{})
       : Compare(std::move(compare)) {}
@@ -24,22 +25,19 @@ public:
     sentinel.right = nullptr;
     other.sentinel.right = nullptr;
     sentinel.swap(other.sentinel);
-    //std::swap(sentinel, other.sentinel);
   }
 
   bool empty() const {
     return sentinel.left == nullptr;
   }
 
-  node_t* get_sentinel()
-  {
+  node_t* get_sentinel() {
     return &sentinel;
   }
 
 private:
-  node_t* get_sentinel() const
-  {
-    return const_cast<node_t *>(&sentinel);
+  node_t* get_sentinel() const {
+    return const_cast<node_t*>(&sentinel);
   }
 
   template <typename iT>
@@ -143,7 +141,6 @@ public:
   }
 
 private:
-  // enum class find_result { THERE_IS, ADD_RIGHT, ADD_LEFT };
   struct find_result {
     enum { THERE_IS, ADD_RIGHT, ADD_LEFT } flag;
     node_t* node;

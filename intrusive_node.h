@@ -107,11 +107,5 @@ struct node {
     repair_childs();
     other.repair_childs();
   }
-
-  void simple_swap(node& other) {
-    std::swap(parent, other.parent);
-    std::swap(left, other.left);
-    std::swap(right, other.right);
-  }
 };
 } // namespace intrusive
